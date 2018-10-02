@@ -1,0 +1,11 @@
+jekyll:
+    image: jekyll/jekyll
+    container_name: jekyll
+    #command: jekyll serve --watch --incremental --livereload
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+    ports:
+        - 4000:4000
+    volumes:
+        - .:/srv/jekyll
