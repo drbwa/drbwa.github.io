@@ -18,27 +18,29 @@ experience of Site Reliability Engineering, which, in turn, has led me to move
 up the stack to figure out how simple machine learning and statistical
 techniques can help SREs make better sense of vast amounts of monitoring data.
 
-More recently, my focus has been two-fold (pun intended). I have continued to
-work on **operational analytics** to develop tools for SREs and NREs that
-improve the accuracy of monitoring alerts, enhance alerts with more actionable
-information and help with root cause analysis by applying statistical and
-machine learning techniques to telemetry data about system operation. In
-addition, I have begun to look into issues around the **productionisation of
-machine learning** applications. I am trying to understand what it would take to
-develop the equivalent of the processes, tools and best practices we have become
-accustomed to in the development of traditional software to the development and
-management of machine learning applications. 
+For some time, my focus has been two-fold (pun intended). I have continued to
+work on **operational analytics**, or **AIOps** as it called now, to develop
+tools for SREs and NREs that improve the accuracy of monitoring alerts, enhance
+alerts with more actionable information and help with root cause analysis by
+applying statistical and machine learning techniques to telemetry data about
+system operation. In addition, I have had a chance to build tools that help
+machine learning engineers with some of the issues around the
+**productionisation of machine learning** applications. 
 
-A few emerging interests I am keen to learn more about and hope to get a chance
-to work on at some point are: Quantum Computing, Exascale Computing, EdTech,
-Systems Biology and Predictive, Preventive, Personalised and Participatory
-Healthcare.
+A few interests I am keen to learn more about and spend time working on: 
+* the entire stack of issues arising when squeezing value of of data, all the 
+way from Big Data processing infrastructure to statistics, machine learning and 
+visualisation,
+* Exascale Computing,
+* Quantum Computing,
+* EdTech,
+* Systems Biology, Predictive, Preventative, Personalised Healthcare.
 
 What motivates me is a general sense of curiosity and the desire to solve real
-problems. I would like to build computing tools that can help accelerate the
-discovery of knowledge to relieve suffering and improve lives. A tall order and
-I have not figured out yet how to get there, but it is something to aspire to.
-This and: autonomy, challenge, purpose, responsibility, teamwork. 
+pain points. I would like to build tools that can help accelerate the discovery
+of knowledge to relieve suffering and improve lives. A tall order and I have
+not figured out yet how to get there, but it is something to aspire to.  This
+and: autonomy, challenge, purpose, responsibility, teamwork. 
 
 I am quite pleased to have been awarded a PhD in Computer Science from
 University College London in 2012 and, almost a decade before that, an MSci in
