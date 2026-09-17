@@ -1,0 +1,932 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Astro Rebuild Build Spec</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root{
+  --paper:#F4F6F5; --surface:#FFFFFF; --surface-2:#E9EDEB; --surface-3:#DFE5E2;
+  --ink:#12181A; --ink-muted:#5A6663; --ink-faint:#7E8A86;
+  --rule:#D5DCD9; --rule-strong:#B4C0BC;
+  --accent:#0B6B57; --accent-deep:#07533F; --accent-soft:#DDEDE7;
+  --warn:#8A5200; --warn-soft:#FAEEDC; --warn-rule:#E4CBA1;
+  --crit:#9E2B25; --crit-soft:#FAE5E3; --crit-rule:#EBBBB6;
+  --code-bg:#12181A; --code-ink:#DDE6E3; --code-rule:#2A3533;
+  --ff-display:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+  --ff-sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --ff-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --shadow:0 1px 2px rgba(18,24,26,.05),0 10px 30px -22px rgba(18,24,26,.45);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1211; --surface:#141A19; --surface-2:#1A2221; --surface-3:#222C2A;
+    --ink:#E3E9E7; --ink-muted:#95A29E; --ink-faint:#75837F;
+    --rule:#26302E; --rule-strong:#37433F;
+    --accent:#4FC3A1; --accent-deep:#7BD8BC; --accent-soft:#10312A;
+    --warn:#DFA55C; --warn-soft:#2C2214; --warn-rule:#4A3A20;
+    --crit:#E9857D; --crit-soft:#2D1917; --crit-rule:#4C2A26;
+    --code-bg:#080C0B; --code-ink:#D3DEDA; --code-rule:#1E2725;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -22px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1211; --surface:#141A19; --surface-2:#1A2221; --surface-3:#222C2A;
+  --ink:#E3E9E7; --ink-muted:#95A29E; --ink-faint:#75837F;
+  --rule:#26302E; --rule-strong:#37433F;
+  --accent:#4FC3A1; --accent-deep:#7BD8BC; --accent-soft:#10312A;
+  --warn:#DFA55C; --warn-soft:#2C2214; --warn-rule:#4A3A20;
+  --crit:#E9857D; --crit-soft:#2D1917; --crit-rule:#4C2A26;
+  --code-bg:#080C0B; --code-ink:#D3DEDA; --code-rule:#1E2725;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -22px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--ff-sans);font-size:16.5px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.page{max-width:1160px;margin:0 auto;padding:0 28px 120px}
+@media(max-width:720px){.page{padding:0 18px 80px}body{font-size:16px}}
+.setbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule);margin:0 -28px 0;padding:10px 28px}
+@media(max-width:720px){.setbar{margin:0 -18px 0;padding:9px 18px}}
+.setbar ol{list-style:none;margin:0;padding:0;display:flex;gap:6px;flex-wrap:wrap;font-family:var(--ff-mono);font-size:11.5px;letter-spacing:.03em}
+.setbar li{color:var(--ink-faint);padding:3px 9px;border:1px solid transparent;border-radius:2px;white-space:nowrap}
+.setbar li[aria-current]{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);font-weight:500}
+header.doc{padding:56px 0 40px;border-bottom:2px solid var(--ink);margin-bottom:52px}
+.eyebrow{font-family:var(--ff-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 18px;font-weight:500}
+h1{font-family:var(--ff-display);font-weight:600;font-size:clamp(2.3rem,5.6vw,3.5rem);line-height:1.06;letter-spacing:-.02em;margin:0 0 22px;text-wrap:balance;max-width:20ch}
+.deck{font-family:var(--ff-display);font-size:clamp(1.08rem,2.2vw,1.32rem);line-height:1.5;color:var(--ink-muted);max-width:62ch;margin:0 0 28px}
+.metarow{display:flex;flex-wrap:wrap;gap:0 34px;font-family:var(--ff-mono);font-size:12px;color:var(--ink-faint);letter-spacing:.02em}
+.metarow b{font-weight:500;color:var(--ink-muted)}
+section{margin:0 0 66px;scroll-margin-top:60px}
+.sec-h{display:grid;grid-template-columns:104px 1fr;align-items:baseline;border-top:1px solid var(--rule-strong);padding-top:14px;margin:0 0 26px}
+@media(max-width:900px){.sec-h{grid-template-columns:1fr;gap:6px}}
+.sec-n{font-family:var(--ff-mono);font-size:12px;color:var(--accent);letter-spacing:.1em;font-weight:500}
+h2{font-family:var(--ff-display);font-size:clamp(1.5rem,3vw,1.95rem);font-weight:600;letter-spacing:-.014em;line-height:1.18;margin:0;text-wrap:balance}
+h3{font-family:var(--ff-sans);font-size:1.02rem;font-weight:600;margin:36px 0 10px}
+.body{max-width:72ch}
+p{margin:0 0 16px}
+a{color:var(--accent-deep);text-underline-offset:2px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+code{font-family:var(--ff-mono);font-size:.86em;background:var(--surface-2);padding:.1em .38em;border-radius:2px;border:1px solid var(--rule)}
+ul,ol{margin:0 0 16px;padding-left:1.3em}
+li{margin:0 0 8px}
+li::marker{color:var(--ink-faint)}
+/* task */
+.task{border:1px solid var(--rule);border-radius:3px;background:var(--surface);margin:0 0 20px;overflow:hidden}
+.task-h{display:flex;gap:14px;align-items:baseline;padding:13px 18px;border-bottom:1px solid var(--rule);background:var(--surface-2);flex-wrap:wrap}
+.task-id{font-family:var(--ff-mono);font-size:11.5px;font-weight:600;color:var(--accent);letter-spacing:.07em;white-space:nowrap}
+.task-h h4{margin:0;font-size:.98rem;font-weight:600;flex:1;min-width:180px}
+.task-b{padding:16px 18px 4px}
+.task-b>*:last-child{margin-bottom:14px}
+/* code */
+figure.code{margin:0 0 18px;border:1px solid var(--code-rule);border-radius:3px;overflow:hidden;background:var(--code-bg)}
+figure.code figcaption{display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--ff-mono);font-size:11.5px;color:#9FB1AC;background:#0B100F;padding:7px 12px;border-bottom:1px solid var(--code-rule);letter-spacing:.02em}
+figure.code figcaption .fn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+figure.code pre{margin:0;overflow-x:auto;padding:14px 14px;font-family:var(--ff-mono);font-size:12.9px;line-height:1.62;color:var(--code-ink);tab-size:2}
+figure.code code{background:none;border:0;padding:0;font-size:inherit;color:inherit}
+button.cp{font-family:var(--ff-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;background:transparent;color:#9FB1AC;border:1px solid var(--code-rule);border-radius:2px;padding:3px 8px;cursor:pointer;flex:none}
+button.cp:hover{color:#fff;border-color:#4a5a56}
+button.cp:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.call{border-radius:3px;padding:17px 21px;margin:22px 0;border:1px solid;font-size:.95rem}
+.call .ct{font-family:var(--ff-mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:600;margin:0 0 8px;display:block}
+.call p:last-child{margin-bottom:0}
+.call.trap{background:var(--crit-soft);border-color:var(--crit-rule)}
+.call.trap .ct{color:var(--crit)}
+.call.note{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.call.note .ct{color:var(--accent-deep)}
+.call.warn{background:var(--warn-soft);border-color:var(--warn-rule)}
+.call.warn .ct{color:var(--warn)}
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--surface);margin:0 0 20px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.89rem}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{background:var(--surface-2);font-family:var(--ff-mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-muted);font-weight:500;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.mono,th.mono{font-family:var(--ff-mono);font-size:.85rem;white-space:nowrap}
+.tree{font-family:var(--ff-mono);font-size:12.6px;line-height:1.75;background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:16px 18px;overflow-x:auto;margin:0 0 20px;color:var(--ink-muted)}
+.tree b{color:var(--ink);font-weight:500}
+.tree i{color:var(--accent);font-style:normal}
+.done{border-left:3px solid var(--accent);background:var(--accent-soft);padding:14px 18px;border-radius:0 3px 3px 0;margin:6px 0 0;font-size:.93rem}
+.done b{font-family:var(--ff-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-deep);display:block;margin-bottom:4px;font-weight:500}
+footer.doc{border-top:1px solid var(--rule);margin-top:70px;padding-top:22px;font-family:var(--ff-mono);font-size:11.5px;color:var(--ink-faint);display:flex;flex-wrap:wrap;gap:8px 26px}
+</style>
+
+<div class="page">
+<nav class="setbar" aria-label="Document set">
+  <ol>
+    <li>01 · DECISION</li>
+    <li aria-current="true">02 · BUILD SPEC</li>
+    <li>03 · DESIGN &amp; COPY</li>
+    <li>04 · LAUNCH RUNBOOK</li>
+  </ol>
+</nav>
+
+<header class="doc">
+  <p class="eyebrow">Document 02 of 04 · Build spec</p>
+  <h1>Astro Rebuild Build Spec</h1>
+  <p class="deck">Every command and every file needed to turn drbwa.github.io from a Jekyll site into an Astro 7 site, in the order they should be run. Written to be executed literally.</p>
+  <div class="metarow">
+    <span><b>Target</b> astro 7.3.2</span>
+    <span><b>Node</b> ≥ 22.12.0</span>
+    <span><b>Branch</b> astro-rebuild</span>
+    <span><b>Est.</b> ~9 h to end of P4</span>
+  </div>
+</header>
+
+<section id="how">
+  <div class="sec-h"><span class="sec-n">§ 0</span><h2>How to use this document</h2></div>
+  <div class="body">
+    <p>Work through the tasks in order. Every task has an ID, an action, and a <strong>Done when</strong> condition — do not move to the next task until that condition is literally true. Where a file's contents are printed, use them verbatim; where a file is described rather than printed, its content comes from <strong>DOC 03</strong>.</p>
+    <ul>
+      <li><strong>Do not upgrade the pinned versions.</strong> They are exact, not ranges, and they are known to work together as of September 2026. If <code>npm install</code> reports a peer conflict, stop and report it rather than adding <code>--force</code>.</li>
+      <li><strong>Do not add libraries that are not listed here.</strong> No CSS framework, no UI kit, no animation library, no icon package.</li>
+      <li><strong>Do not delete any Jekyll file until P6.</strong> The old site keeps serving until cutover.</li>
+      <li><strong>Do not invent design.</strong> Colours, type and spacing come from DOC 03 §4 exactly.</li>
+    </ul>
+  </div>
+
+  <div class="call trap">
+    <span class="ct">Read this before writing astro.config.mjs</span>
+    <p>Astro 7 replaced its Markdown engine with <strong>Sätteri</strong> (Rust). Sätteri does <em>not</em> run <code>remark</code> or <code>rehype</code> plugins — it has its own <code>mdastPlugins</code> / <code>hastPlugins</code> API. If you set <code>markdown.remarkPlugins</code> or <code>markdown.rehypePlugins</code> without also installing <code>@astrojs/markdown-remark</code> and selecting it via <code>markdown.processor</code>, <strong>the build succeeds and your plugins do nothing at all</strong>. There is no warning. Maths will render as literal dollar signs and heading anchors will not exist. The config in <span style="font-family:var(--ff-mono)">T1.3</span> selects the unified processor explicitly. Do not "simplify" it away.</p>
+  </div>
+</section>
+
+<section id="p0">
+  <div class="sec-h"><span class="sec-n">P0</span><h2>Safety net</h2></div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T0.1</span><h4>Tag the current tree and branch</h4></div>
+    <div class="task-b">
+      <figure class="code"><figcaption><span class="fn">shell — repo root</span><button class="cp" type="button">Copy</button></figcaption><pre><code>cd /home/bruno/development/git/drbwa.github.io
+git status --porcelain          # must be empty; stop if it is not
+git tag -a pre-astro -m "Last Jekyll build before Astro rebuild"
+git push origin pre-astro
+git switch -c astro-rebuild</code></pre></figure>
+      <p class="done"><b>Done when</b><code>git tag -l pre-astro</code> prints <code>pre-astro</code>, the tag exists on the remote, and <code>git branch --show-current</code> prints <code>astro-rebuild</code>.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T0.2</span><h4>Capture the live site as a baseline</h4></div>
+    <div class="task-b">
+      <p>This snapshot is what P5 compares against, so that nothing silently disappears.</p>
+      <figure class="code"><figcaption><span class="fn">shell — repo root</span><button class="cp" type="button">Copy</button></figcaption><pre><code>mkdir -p .baseline
+for p in "" publications/ blog/ feed.xml 404.html; do
+  curl -sS -o ".baseline/$(echo "${p:-index}" | tr '/' '_')" \
+       -w "%{http_code} https://drbwa.github.io/$p\n" \
+       "https://drbwa.github.io/$p"
+done | tee .baseline/urls.txt
+echo ".baseline/" &gt;&gt; .gitignore</code></pre></figure>
+      <p class="done"><b>Done when</b><code>.baseline/urls.txt</code> lists a status code for each of the five paths, and <code>.baseline/</code> is gitignored.</p>
+    </div>
+  </div>
+</section>
+
+<section id="p1">
+  <div class="sec-h"><span class="sec-n">P1</span><h2>Scaffold and configure</h2></div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T1.1</span><h4>Create the project files in place</h4></div>
+    <div class="task-b">
+      <p>Do <em>not</em> run <code>npm create astro</code> — it wants an empty directory and will scaffold a starter theme you then have to delete. Write the files below into the existing repo root instead.</p>
+      <figure class="code"><figcaption><span class="fn">package.json</span><button class="cp" type="button">Copy</button></figcaption><pre><code>{
+  "name": "drbwa-site",
+  "type": "module",
+  "private": true,
+  "engines": { "node": "&gt;=22.12.0" },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1 --port 4321",
+    "check": "astro check",
+    "links": "linkinator ./dist --recurse --silent --skip 'linkedin.com|scholar.google'"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "7.3.1",
+    "@astrojs/mdx": "8.0.1",
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@fontsource-variable/newsreader": "5.3.0",
+    "@fontsource-variable/public-sans": "5.3.0",
+    "astro": "7.3.2",
+    "astro-mermaid": "2.1.0",
+    "katex": "0.18.7",
+    "mermaid": "11.17.2",
+    "rehype-autolink-headings": "7.1.0",
+    "rehype-external-links": "3.0.0",
+    "rehype-katex": "7.0.1",
+    "remark-math": "6.0.0",
+    "sharp": "0.35.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "linkinator": "8.1.0",
+    "typescript": "5.9.3"
+  }
+}</code></pre></figure>
+
+      <figure class="code"><figcaption><span class="fn">tsconfig.json</span><button class="cp" type="button">Copy</button></figcaption><pre><code>{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}</code></pre></figure>
+
+      <figure class="code"><figcaption><span class="fn">.nvmrc</span><button class="cp" type="button">Copy</button></figcaption><pre><code>24</code></pre></figure>
+
+      <figure class="code"><figcaption><span class="fn">shell</span><button class="cp" type="button">Copy</button></figcaption><pre><code>npm install
+node -e "console.log(process.version)"   # must be v22.12.0 or newer</code></pre></figure>
+      <p class="done"><b>Done when</b><code>npm install</code> completes with no peer-dependency errors and <code>node_modules/astro/package.json</code> reports version <code>7.3.2</code>.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T1.2</span><h4>Replace .gitignore</h4></div>
+    <div class="task-b">
+      <figure class="code"><figcaption><span class="fn">.gitignore</span><button class="cp" type="button">Copy</button></figcaption><pre><code># build output
+dist/
+.astro/
+# dependencies
+node_modules/
+# local
+.baseline/
+.DS_Store
+*.log
+.env
+.env.production
+# jekyll leftovers (removed in P6)
+_site
+.jekyll-metadata
+Gemfile.lock</code></pre></figure>
+      <p class="done"><b>Done when</b><code>git status</code> shows no <code>node_modules</code> or <code>dist</code> entries.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T1.3</span><h4>Write astro.config.mjs</h4></div>
+    <div class="task-b">
+      <p>This is the file the trap at the top of the document is about. The <code>processor: unified({...})</code> line is load-bearing.</p>
+      <figure class="code"><figcaption><span class="fn">astro.config.mjs</span><button class="cp" type="button">Copy</button></figcaption><pre><code>import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
+import mermaid from 'astro-mermaid';
+import { unified, rehypeHeadingIds } from '@astrojs/markdown-remark';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeExternalLinks from 'rehype-external-links';
+
+export default defineConfig({
+  // The custom domain. One of the four places it appears — see T1.8.
+  // No trailing slash. Astro's default `build.format: 'directory'` already
+  // emits /publications/index.html, which GitHub Pages serves at
+  // /publications/ — matching the Jekyll URLs we must preserve.
+  site: 'https://brunowassermann.com',
+
+  markdown: {
+    // REQUIRED. Astro 7 defaults to the Satteri processor, which ignores
+    // remark/rehype plugins silently. Do not remove this line.
+    processor: unified({
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [
+        rehypeKatex,
+        // rehypeHeadingIds must run before autolink so the anchors have
+        // ids to point at.
+        rehypeHeadingIds,
+        [rehypeAutolinkHeadings, {
+          behavior: 'append',
+          properties: { className: ['heading-anchor'], ariaHidden: 'true', tabIndex: -1 },
+          content: { type: 'text', value: '#' },
+        }],
+        [rehypeExternalLinks, {
+          target: '_blank',
+          rel: ['noopener', 'noreferrer'],
+          protocols: ['http', 'https'],
+        }],
+      ],
+    }),
+    syntaxHighlight: 'shiki',
+    shikiConfig: {
+      themes: { light: 'github-light', dark: 'github-dark' },
+      wrap: false,
+    },
+  },
+
+  integrations: [
+    // mermaid() must come first: it rewrites fenced `mermaid` blocks
+    // before any other markdown-processing integration sees them.
+    mermaid({ theme: 'neutral', autoTheme: true, enableLog: false }),
+    mdx(),
+    sitemap(),
+  ],
+});</code></pre></figure>
+      <div class="call warn"><span class="ct">If diagrams come out as syntax-highlighted code</span><p>Shiki got to the fence first. Change <code>syntaxHighlight: 'shiki'</code> to <code>syntaxHighlight: { type: 'shiki', excludeLangs: ['mermaid'] }</code> and rebuild. Do not change the integration order to fix it.</p></div>
+      <p class="done"><b>Done when</b><code>npx astro build</code> exits 0 (the site will be near-empty at this point, which is expected).</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T1.4</span><h4>Define the content collection</h4></div>
+    <div class="task-b">
+      <p>The schema is the thing that stops a typo in front matter from reaching production. Note this file lives at <code>src/content.config.ts</code> — <em>not</em> <code>src/content/config.ts</code>, which is the pre-Astro-5 location and will be ignored.</p>
+      <figure class="code"><figcaption><span class="fn">src/content.config.ts</span><button class="cp" type="button">Copy</button></figcaption><pre><code>import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/blog' }),
+  schema: z.object({
+    title: z.string().max(80),
+    description: z.string().min(20).max(200),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+    // Optional taxonomy. Tag pages are deliberately NOT built yet.
+    tags: z.array(z.string()).default([]),
+    // Set true to keep a post out of the index, the feed and the sitemap.
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog };</code></pre></figure>
+      <p class="done"><b>Done when</b> a file <code>src/content/blog/test.md</code> with front matter missing <code>description</code> causes <code>npm run build</code> to fail with a message naming that file. Delete the test file afterwards.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T1.5</span><h4>Site constants</h4></div>
+    <div class="task-b">
+      <figure class="code"><figcaption><span class="fn">src/consts.ts</span><button class="cp" type="button">Copy</button></figcaption><pre><code>export const SITE_TITLE = 'Bruno Wassermann';
+export const SITE_DESCRIPTION =
+  'Research Staff Member at IBM Research, Haifa. Distributed systems, operations, and the cost of running AI agents.';
+export const SITE_URL = 'https://brunowassermann.com';  // see T1.8
+export const AUTHOR = 'Bruno Wassermann';
+
+export const NAV = [
+  { href: '/', label: 'Home' },
+  { href: '/blog/', label: 'Writing' },
+  { href: '/publications/', label: 'Publications' },
+  { href: '/cv/', label: 'CV' },
+];
+
+export const ELSEWHERE = [
+  { href: 'https://github.com/drbwa', label: 'GitHub' },
+  { href: 'https://www.linkedin.com/in/brunowassermann', label: 'LinkedIn' },
+  { href: 'https://scholar.google.com/citations?user=o3YKyy8AAAAJ&amp;hl=en', label: 'Google Scholar' },
+  { href: '/feed.xml', label: 'RSS' },
+];</code></pre></figure>
+      <p class="done"><b>Done when</b> the file exists and <code>npm run check</code> reports no type errors for it.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T1.6</span><h4>CI workflow (build check on every push)</h4></div>
+    <div class="task-b">
+      <p>This runs on the branch immediately, so a broken build is caught before cutover.</p>
+      <figure class="code"><figcaption><span class="fn">.github/workflows/ci.yml</span><button class="cp" type="button">Copy</button></figcaption><pre><code>name: CI
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm run links</code></pre></figure>
+      <div class="call note"><span class="ct">npm ci needs a lockfile</span><p>Commit <code>package-lock.json</code>. It is not in the old <code>.gitignore</code> and must not be added to the new one.</p></div>
+      <p class="done"><b>Done when</b> a push to <code>astro-rebuild</code> shows a green CI run in the Actions tab.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T1.7</span><h4>Deploy workflow (do not enable it yet)</h4></div>
+    <div class="task-b">
+      <p>Write the file now, but note the <code>branches: [master]</code> trigger means it does nothing until the branch is merged in P6. GitHub Pages itself is switched over in P6 too.</p>
+      <figure class="code"><figcaption><span class="fn">.github/workflows/deploy.yml</span><button class="cp" type="button">Copy</button></figcaption><pre><code>name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: withastro/action@v6.1.2
+        with:
+          node-version: 24
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5</code></pre></figure>
+      <p class="done"><b>Done when</b> the file is committed and GitHub's Actions tab shows the workflow registered but not run.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T1.8</span><h4>The custom domain — the four places it appears</h4></div>
+    <div class="task-b">
+      <p>The site moves from <code>drbwa.github.io</code> to a custom domain registered at Cloudflare. The spec assumes <strong><code>brunowassermann.com</code></strong>. If Bruno chose a different one, change it in exactly these four files and nowhere else — a mismatch between them produces canonical URLs pointing at one domain and a feed pointing at another, which is worse than either alone.</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th class="mono">File</th><th class="mono">What it sets</th><th>Consequence if wrong</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">astro.config.mjs</td><td class="mono">site</td><td>Every canonical URL, every absolute link in the feed and the sitemap.</td></tr>
+            <tr><td class="mono">src/consts.ts</td><td class="mono">SITE_URL</td><td>Anything the templates build a URL from by hand.</td></tr>
+            <tr><td class="mono">public/robots.txt</td><td class="mono">Sitemap:</td><td>Search engines fetch a sitemap on the wrong host and ignore it.</td></tr>
+            <tr><td class="mono">public/CNAME</td><td class="mono">the domain, alone</td><td>GitHub Pages does not know the site has a custom domain at all.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="call trap">
+        <span class="ct">public/CNAME, not a repo-root CNAME</span>
+        <p>With the legacy Jekyll builder, GitHub writes a <code>CNAME</code> file to the repository root when you set a custom domain in the settings UI. With an Actions deploy, GitHub only sees what the workflow uploads — so the file has to be in the <em>build output</em>. Astro copies <code>public/</code> to the root of <code>dist/</code>, so <code>public/CNAME</code> becomes <code>dist/CNAME</code>, which is correct. A <code>CNAME</code> at the repository root does nothing and will be silently ignored.</p>
+        <p>The file contains the bare hostname on one line: <code>brunowassermann.com</code>. No <code>https://</code>, no trailing slash, no <code>www</code> unless <code>www</code> is the canonical host.</p>
+      </div>
+      <figure class="code"><figcaption><span class="fn">shell — to change the domain later, all four at once</span><button class="cp" type="button">Copy</button></figcaption><pre><code>OLD=brunowassermann.com
+NEW=example.com
+grep -rl "$OLD" astro.config.mjs src/consts.ts public/robots.txt public/CNAME \
+  | xargs sed -i "s|$OLD|$NEW|g"
+grep -rn "$NEW" astro.config.mjs src/consts.ts public/robots.txt public/CNAME</code></pre></figure>
+      <p class="done"><b>Done when</b><code>grep -rn "drbwa.github.io" astro.config.mjs src/ public/</code> returns nothing, and all four files agree on one hostname.</p>
+    </div>
+  </div>
+</section>
+
+<section id="p2">
+  <div class="sec-h"><span class="sec-n">P2</span><h2>Design system and layouts</h2></div>
+
+  <div class="body">
+    <p>The finished tree at the end of P4 looks like this. Everything marked in green is created in P2.</p>
+  </div>
+  <div class="tree">.<br>
+├── <b>astro.config.mjs</b><br>
+├── <b>package.json</b> · <b>package-lock.json</b> · <b>tsconfig.json</b> · <b>.nvmrc</b><br>
+├── .github/workflows/ <b>ci.yml</b> <b>deploy.yml</b><br>
+├── public/<br>
+│&nbsp;&nbsp; ├── <i>favicon.svg</i><br>
+│&nbsp;&nbsp; ├── <i>robots.txt</i><br>
+│&nbsp;&nbsp; ├── <b>CNAME</b> &nbsp;<span style="color:var(--ink-faint)">← the custom domain, one line</span><br>
+│&nbsp;&nbsp; └── <i>.nojekyll</i><br>
+└── src/<br>
+&nbsp;&nbsp; ├── <b>consts.ts</b> · <b>content.config.ts</b><br>
+&nbsp;&nbsp; ├── styles/ <i>tokens.css</i> <i>global.css</i> <i>prose.css</i><br>
+&nbsp;&nbsp; ├── components/ <i>BaseHead.astro</i> <i>Header.astro</i> <i>Footer.astro</i> <i>ThemeToggle.astro</i> <i>PostList.astro</i> <i>Figure.astro</i> <i>Callout.astro</i><br>
+&nbsp;&nbsp; ├── layouts/ <i>Base.astro</i> <i>Page.astro</i> <i>Post.astro</i><br>
+&nbsp;&nbsp; ├── content/blog/ <b>*.mdx</b><br>
+&nbsp;&nbsp; └── pages/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <b>index.astro</b> <b>publications.astro</b> <b>cv.astro</b> <b>404.astro</b><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── blog/ <b>index.astro</b> <b>[...id].astro</b><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── <b>feed.xml.js</b>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T2.1</span><h4>Create the three stylesheets</h4></div>
+    <div class="task-b">
+      <p>Create <code>src/styles/tokens.css</code>, <code>src/styles/global.css</code> and <code>src/styles/prose.css</code> with the contents printed in <strong>DOC 03 §4</strong>. Copy them exactly. Do not add colours, do not add a shadow scale, do not add rounded corners that are not there.</p>
+      <p class="done"><b>Done when</b> all three files exist and their contents match DOC 03 §4 character for character.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T2.2</span><h4>BaseHead.astro</h4></div>
+    <div class="task-b">
+      <p>One component owns every <code>&lt;head&gt;</code> tag, so metadata cannot drift between pages.</p>
+      <figure class="code"><figcaption><span class="fn">src/components/BaseHead.astro</span><button class="cp" type="button">Copy</button></figcaption><pre><code>---
+import '@fontsource-variable/newsreader';
+import '@fontsource-variable/public-sans';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/tokens.css';
+import '../styles/global.css';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+}
+const {
+  title,
+  description = SITE_DESCRIPTION,
+  type = 'website',
+  publishedTime,
+} = Astro.props;
+
+const pageTitle = title ? `${title} — ${SITE_TITLE}` : SITE_TITLE;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+&lt;meta charset="utf-8" /&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1" /&gt;
+&lt;title&gt;{pageTitle}&lt;/title&gt;
+&lt;meta name="description" content={description} /&gt;
+&lt;link rel="canonical" href={canonical} /&gt;
+&lt;link rel="icon" href="/favicon.svg" type="image/svg+xml" /&gt;
+&lt;meta name="generator" content={Astro.generator} /&gt;
+
+&lt;meta property="og:type" content={type} /&gt;
+&lt;meta property="og:title" content={pageTitle} /&gt;
+&lt;meta property="og:description" content={description} /&gt;
+&lt;meta property="og:url" content={canonical} /&gt;
+&lt;meta name="twitter:card" content="summary" /&gt;
+{publishedTime &amp;&amp; (
+  &lt;meta property="article:published_time" content={publishedTime.toISOString()} /&gt;
+)}
+
+&lt;link rel="alternate" type="application/rss+xml" title={SITE_TITLE}
+      href={new URL('/feed.xml', Astro.site)} /&gt;
+
+&lt;!-- Set the theme before first paint so there is no flash. Wrapped in
+     try/catch because localStorage throws in some privacy modes. --&gt;
+&lt;script is:inline&gt;
+  try {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || stored === 'light') {
+      document.documentElement.dataset.theme = stored;
+    }
+  } catch (e) { /* no stored preference; CSS falls back to prefers-color-scheme */ }
+&lt;/script&gt;</code></pre></figure>
+      <p class="done"><b>Done when</b> viewing source on any built page shows exactly one <code>&lt;title&gt;</code>, one canonical link, and the RSS alternate link.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T2.3</span><h4>Base.astro, Header, Footer, ThemeToggle</h4></div>
+    <div class="task-b">
+      <figure class="code"><figcaption><span class="fn">src/layouts/Base.astro</span><button class="cp" type="button">Copy</button></figcaption><pre><code>---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+}
+---
+&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;BaseHead {...Astro.props} /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;a class="skip" href="#main"&gt;Skip to content&lt;/a&gt;
+    &lt;Header /&gt;
+    &lt;main id="main"&gt;
+      &lt;slot /&gt;
+    &lt;/main&gt;
+    &lt;Footer /&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre></figure>
+
+      <p><strong>Header.astro</strong> — the site name as a link to <code>/</code>, the four <code>NAV</code> entries from <code>consts.ts</code>, and <code>ThemeToggle</code>. Mark the current page with <code>aria-current="page"</code> by comparing <code>Astro.url.pathname</code> to each <code>href</code>. No hamburger menu: at narrow widths the four links wrap onto a second line, which is fine and is one fewer thing to break.</p>
+
+      <p><strong>Footer.astro</strong> — the <code>ELSEWHERE</code> links, the copy from DOC 03 §3.6, and the current year via <code>new Date().getFullYear()</code>.</p>
+
+      <figure class="code"><figcaption><span class="fn">src/components/ThemeToggle.astro</span><button class="cp" type="button">Copy</button></figcaption><pre><code>---
+// Three states matter: no stored preference (follow the OS), stored 'light',
+// stored 'dark'. The button cycles light -> dark -> light and always stores,
+// so after the first click the OS no longer drives the page.
+---
+&lt;button id="theme-toggle" type="button" class="theme-toggle"
+        aria-label="Switch between light and dark theme"&gt;
+  &lt;span aria-hidden="true" class="tt-light"&gt;Light&lt;/span&gt;
+  &lt;span aria-hidden="true" class="tt-dark"&gt;Dark&lt;/span&gt;
+&lt;/button&gt;
+
+&lt;script&gt;
+  const btn = document.getElementById('theme-toggle');
+  btn?.addEventListener('click', () =&gt; {
+    const root = document.documentElement;
+    const current =
+      root.dataset.theme ??
+      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('theme', next); } catch (e) { /* not persisted */ }
+  });
+&lt;/script&gt;</code></pre></figure>
+      <div class="call note"><span class="ct">Why data-theme specifically</span><p><code>astro-mermaid</code> reads <code>data-theme</code> on the root element to pick its diagram palette. Using any other attribute name means diagrams stay light-themed on a dark page.</p></div>
+      <p class="done"><b>Done when</b> the toggle flips the page, the choice survives a reload, and a fresh private window follows the OS setting.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T2.4</span><h4>Page.astro and static assets</h4></div>
+    <div class="task-b">
+      <p><strong>Page.astro</strong> wraps <code>Base</code> and renders a page title plus a <code>&lt;slot /&gt;</code> inside <code>&lt;div class="prose"&gt;</code>, importing <code>../styles/prose.css</code>. Used by <code>publications</code>, <code>cv</code> and <code>404</code>.</p>
+      <figure class="code"><figcaption><span class="fn">public/robots.txt</span><button class="cp" type="button">Copy</button></figcaption><pre><code>User-agent: *
+Allow: /
+
+Sitemap: https://brunowassermann.com/sitemap-index.xml</code></pre></figure>
+      <figure class="code"><figcaption><span class="fn">public/CNAME — no trailing newline issues, one line, no protocol</span><button class="cp" type="button">Copy</button></figcaption><pre><code>brunowassermann.com</code></pre></figure>
+      <p>Also create an empty <code>public/.nojekyll</code> (stops GitHub Pages ever trying to run Jekyll over the output) and <code>public/favicon.svg</code> per DOC 03 §7.</p>
+      <p class="done"><b>Done when</b><code>dist/robots.txt</code>, <code>dist/CNAME</code>, <code>dist/.nojekyll</code>, <code>dist/favicon.svg</code> and <code>dist/sitemap-index.xml</code> all exist after a build.</p>
+    </div>
+  </div>
+</section>
+
+<section id="p3">
+  <div class="sec-h"><span class="sec-n">P3</span><h2>Pages and copy</h2></div>
+  <div class="body">
+    <p>All prose comes from <strong>DOC 03 §3</strong>. Paste it; do not paraphrase, summarise or "improve" it. If a sentence looks wrong, flag it rather than rewriting it — the copy is the part Bruno signed off on.</p>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Task</th><th class="mono">File</th><th>Renders</th><th>Copy from</th></tr></thead>
+      <tbody>
+        <tr><td>T3.1</td><td class="mono">src/pages/index.astro</td><td>Name, role line, lead, four body paragraphs, "Currently / Previously" list, three most recent posts</td><td>DOC 03 §3.1</td></tr>
+        <tr><td>T3.2</td><td class="mono">src/pages/blog/index.astro</td><td>One-line intro, then every non-draft post newest first via <code>PostList</code></td><td>DOC 03 §3.2</td></tr>
+        <tr><td>T3.3</td><td class="mono">src/pages/publications.astro</td><td>Publications, patents, talks — three sections, plain lists, no cards</td><td>DOC 03 §3.3</td></tr>
+        <tr><td>T3.4</td><td class="mono">src/pages/cv.astro</td><td>Condensed timeline; no phone number, no street address</td><td>DOC 03 §3.4</td></tr>
+        <tr><td>T3.5</td><td class="mono">src/pages/404.astro</td><td>Short message plus links back</td><td>DOC 03 §3.5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T3.6</span><h4>Recent posts on the home page</h4></div>
+    <div class="task-b">
+      <figure class="code"><figcaption><span class="fn">src/pages/index.astro — frontmatter fragment</span><button class="cp" type="button">Copy</button></figcaption><pre><code>---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+
+const posts = (await getCollection('blog', ({ data }) =&gt; !data.draft))
+  .sort((a, b) =&gt; b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---</code></pre></figure>
+      <div class="call note"><span class="ct">Drafts</span><p>The <code>!data.draft</code> filter must be applied in <em>four</em> places: the home page, the blog index, the feed, and <code>getStaticPaths</code>. Miss the last one and drafts are unlisted but still publicly reachable at their URL.</p></div>
+      <p class="done"><b>Done when</b> a post with <code>draft: true</code> appears nowhere in <code>dist/</code>: <code>grep -rl "the draft title" dist/</code> returns nothing.</p>
+    </div>
+  </div>
+</section>
+
+<section id="p4">
+  <div class="sec-h"><span class="sec-n">P4</span><h2>The blog pipeline</h2></div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T4.1</span><h4>The post route</h4></div>
+    <div class="task-b">
+      <p>Astro 5 and later use the content layer: entries are addressed by <code>id</code>, not <code>slug</code>, and rendering goes through <code>render(entry)</code> imported from <code>astro:content</code> rather than <code>entry.render()</code>. Older tutorials get this wrong.</p>
+      <figure class="code"><figcaption><span class="fn">src/pages/blog/[...id].astro</span><button class="cp" type="button">Copy</button></figcaption><pre><code>---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Post from '../../layouts/Post.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) =&gt; !data.draft);
+  return posts.map((post) =&gt; ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+type Props = { post: CollectionEntry&lt;'blog'&gt; };
+const { post } = Astro.props;
+const { Content, headings, remarkPluginFrontmatter } = await render(post);
+---
+&lt;Post post={post} headings={headings}
+      readingTime={remarkPluginFrontmatter?.readingTime}&gt;
+  &lt;Content /&gt;
+&lt;/Post&gt;</code></pre></figure>
+      <p><strong>Post.astro</strong> wraps <code>Base</code> with <code>type="article"</code>, renders the title, the date via <code>&lt;time datetime={...}&gt;</code>, an optional "Updated" line, the tags as plain text, then the slot inside <code>&lt;article class="prose"&gt;</code>. It also imports <code>prose.css</code> and <code>katex/dist/katex.min.css</code>.</p>
+      <div class="call warn"><span class="ct">KaTeX CSS</span><p>Maths renders as unstyled markup unless <code>katex/dist/katex.min.css</code> is imported. Import it in <code>Post.astro</code> only, so it does not weigh down pages with no maths on them.</p></div>
+      <p class="done"><b>Done when</b> a post at <code>src/content/blog/x.mdx</code> is reachable at <code>/blog/x/</code> in <code>npm run dev</code>.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T4.2</span><h4>The feed — at /feed.xml, not /rss.xml</h4></div>
+    <div class="task-b">
+      <p>The Jekyll site published its feed at <code>/feed.xml</code> via <code>jekyll-feed</code>. Astro's examples default to <code>/rss.xml</code>. Keeping the old path is a hard requirement; anything else silently unsubscribes existing readers.</p>
+      <figure class="code"><figcaption><span class="fn">src/pages/feed.xml.js</span><button class="cp" type="button">Copy</button></figcaption><pre><code>import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+export async function GET(context) {
+  const posts = (await getCollection('blog', ({ data }) =&gt; !data.draft))
+    .sort((a, b) =&gt; b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+  return rss({
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    site: context.site,
+    items: posts.map((post) =&gt; ({
+      title: post.data.title,
+      description: post.data.description,
+      pubDate: post.data.pubDate,
+      link: `/blog/${post.id}/`,
+    })),
+  });
+}</code></pre></figure>
+      <p class="done"><b>Done when</b><code>dist/feed.xml</code> exists, is valid XML, and every <code>&lt;link&gt;</code> is an absolute <code>https://drbwa.github.io/blog/…/</code> URL.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T4.3</span><h4>Figure.astro — figures and charts</h4></div>
+    <div class="task-b">
+      <p>One component covers photographs, screenshots and charts, including charts exported from matplotlib as SVG. The <code>srcDark</code> prop exists because a chart exported on a white background is unreadable on a dark page; when only one source is given it is used for both themes.</p>
+      <figure class="code"><figcaption><span class="fn">src/components/Figure.astro</span><button class="cp" type="button">Copy</button></figcaption><pre><code>---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata;
+  srcDark?: ImageMetadata;
+  alt: string;
+  caption?: string;
+  /** 'wide' lets the figure break out past the text column. */
+  width?: 'text' | 'wide';
+}
+const { src, srcDark, alt, caption, width = 'text' } = Astro.props;
+---
+&lt;figure class={`fig fig--${width}`}&gt;
+  &lt;Image src={src} alt={alt} class={srcDark ? 'only-light' : ''}
+         loading="lazy" decoding="async" /&gt;
+  {srcDark &amp;&amp; (
+    &lt;Image src={srcDark} alt="" aria-hidden="true" class="only-dark"
+           loading="lazy" decoding="async" /&gt;
+  )}
+  {caption &amp;&amp; &lt;figcaption&gt;{caption}&lt;/figcaption&gt;}
+&lt;/figure&gt;</code></pre></figure>
+      <div class="call note"><span class="ct">The alt text rule</span><p><code>alt</code> is required by the type, and Astro's <code>&lt;Image&gt;</code> will error without it. That is deliberate: an uncaptioned, undescribed chart is unusable to a screen reader. The dark variant takes <code>alt=""</code> and <code>aria-hidden</code> so the same figure is not announced twice.</p></div>
+      <p><code>.only-light</code> and <code>.only-dark</code> are defined in <code>prose.css</code> (DOC 03 §4.3) and switch on the same three theme states as everything else.</p>
+      <p class="done"><b>Done when</b> a figure with both sources shows exactly one image in each theme, and the caption sits under the image.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T4.4</span><h4>Callout.astro</h4></div>
+    <div class="task-b">
+      <p>A small MDX component for asides: <code>&lt;Callout type="note|warn"&gt;…&lt;/Callout&gt;</code>. Renders an <code>&lt;aside&gt;</code> with a mono label and a left rule, styled from the tokens. No icons, no emoji.</p>
+      <p class="done"><b>Done when</b> both variants render in the fixture post in both themes.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T4.5</span><h4>The kitchen-sink fixture post</h4></div>
+    <div class="task-b">
+      <p>This post exists to prove the pipeline works and is never published. Create it with <code>draft: true</code> and keep it in the repo permanently — it is the regression test for every future dependency upgrade.</p>
+      <figure class="code"><figcaption><span class="fn">src/content/blog/_pipeline-check.mdx</span><button class="cp" type="button">Copy</button></figcaption><pre><code>---
+title: Pipeline check
+description: Draft fixture exercising every feature of the post pipeline. Never published.
+pubDate: 2026-01-01
+draft: true
+tags: ["meta"]
+---
+
+import Figure from '../../components/Figure.astro';
+import Callout from '../../components/Callout.astro';
+import chart from './_assets/example-chart.svg';
+
+Ordinary prose with **bold**, _italic_, `inline code`, a
+[external link](https://astro.build), and a footnote-free paragraph.
+
+## A Mermaid diagram
+
+```mermaid
+flowchart LR
+  R[Request] --&gt; C{Confidence &gt; t?}
+  C --&gt;|yes| S[Small model]
+  C --&gt;|no| L[Large model]
+  S --&gt; O[Response]
+  L --&gt; O
+```
+
+## Maths
+
+Inline $p(\text{escalate}) = 1 - \sigma(z)$ and display:
+
+$$
+\mathbb{E}[\text{cost}] = c_s + p \cdot c_l
+$$
+
+## A chart
+
+&lt;Figure src={chart} alt="Cost per resolved task against escalation threshold."
+        caption="Fig. 1 — Exported from matplotlib as SVG." /&gt;
+
+## A callout
+
+&lt;Callout type="warn"&gt;
+  Numbers here are illustrative.
+&lt;/Callout&gt;
+
+## Code
+
+```python
+def escalate(conf: float, t: float = 0.7) -&gt; bool:
+    return conf &lt; t
+```
+
+## A table
+
+| Route | Share | Cost |
+| ----- | ----: | ---: |
+| small | 82%   | 0.11 |
+| large | 18%   | 0.94 |</code></pre></figure>
+      <p>Also create <code>src/content/blog/_assets/example-chart.svg</code> — any small valid SVG will do for now.</p>
+      <p class="done"><b>Done when</b> in <code>npm run dev</code> at <code>/blog/_pipeline-check/</code>: the diagram renders as a diagram, the maths renders as maths, the figure and caption appear, the code block is syntax-highlighted, the table scrolls rather than overflowing, and all of it is legible in both themes. Then confirm the page is <em>absent</em> from <code>dist/</code> after <code>npm run build</code>.</p>
+    </div>
+  </div>
+
+  <div class="task">
+    <div class="task-h"><span class="task-id">T4.6</span><h4>Verify Mermaid does not leak onto other pages</h4></div>
+    <div class="task-b">
+      <figure class="code"><figcaption><span class="fn">shell</span><button class="cp" type="button">Copy</button></figcaption><pre><code>npm run build
+grep -c "&lt;script" dist/index.html            # expect 0 or 1 (the inline theme script)
+du -sh dist/_astro/*.js 2&gt;/dev/null | sort -h | tail -5</code></pre></figure>
+      <p class="done"><b>Done when</b><code>dist/index.html</code> references no bundled JavaScript at all — only the small inline theme script from <code>BaseHead</code>. If a large Mermaid bundle is linked from the home page, stop and report it rather than working around it.</p>
+    </div>
+  </div>
+</section>
+
+<section id="p6">
+  <div class="sec-h"><span class="sec-n">P6</span><h2>Removing Jekyll</h2></div>
+  <div class="body">
+    <p>P5 (testing) is <strong>DOC 04 §1–3</strong> and the cutover is <strong>DOC 04 §4</strong>. This section only specifies the deletion, which happens <em>after</em> the merge and in its own commit, so that reverting it restores a working Jekyll site in one step.</p>
+    <figure class="code"><figcaption><span class="fn">shell — after the merge to master is live and verified</span><button class="cp" type="button">Copy</button></figcaption><pre><code>git rm _config.yml Gemfile blog.md index.md publications.md 404.html \
+       docker-compose.yml assets/main.css _includes/google-analytics.html
+git commit -m "Remove Jekyll site now that Astro build is live
+
+The Astro rebuild has been serving from GitHub Actions since the
+previous commit. Reverting this single commit restores the Jekyll
+site if that turns out to be necessary."
+git push</code></pre></figure>
+    <div class="call warn"><span class="ct">Do not delete these</span><p><code>README.md</code> is rewritten, not removed (DOC 04 §6). <code>.gitignore</code> was already replaced in T1.2. The <code>pre-astro</code> tag stays forever.</p></div>
+  </div>
+</section>
+
+<section id="pin">
+  <div class="sec-h"><span class="sec-n">§ 7</span><h2>Pinned versions</h2></div>
+  <div class="body"><p>Verified against the npm registry in September 2026. If any install resolves to something else, stop and report it.</p></div>
+  <div class="tw">
+    <table>
+      <thead><tr><th class="mono">Package</th><th class="mono">Version</th><th>Why it is here</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">astro</td><td class="mono">7.3.2</td><td>Framework. Requires Node ≥ 22.12.0.</td></tr>
+        <tr><td class="mono">@astrojs/markdown-remark</td><td class="mono">7.3.1</td><td>The unified processor. Without it the plugins below are silently ignored.</td></tr>
+        <tr><td class="mono">@astrojs/mdx</td><td class="mono">8.0.1</td><td>Components inside posts — the mechanism for figures and charts.</td></tr>
+        <tr><td class="mono">@astrojs/rss</td><td class="mono">4.0.19</td><td>The feed at <code>/feed.xml</code>.</td></tr>
+        <tr><td class="mono">@astrojs/sitemap</td><td class="mono">3.7.4</td><td><code>sitemap-index.xml</code>, referenced from robots.txt.</td></tr>
+        <tr><td class="mono">astro-mermaid</td><td class="mono">2.1.0</td><td>Diagrams. 2.1.0 is the first release that handles both Astro 7 engines.</td></tr>
+        <tr><td class="mono">mermaid</td><td class="mono">11.17.2</td><td>Peer of the above.</td></tr>
+        <tr><td class="mono">remark-math · rehype-katex · katex</td><td class="mono">6.0.0 · 7.0.1 · 0.18.7</td><td>Maths. Needs the KaTeX stylesheet imported in <code>Post.astro</code>.</td></tr>
+        <tr><td class="mono">rehype-autolink-headings</td><td class="mono">7.1.0</td><td>Linkable headings. Must run after <code>rehypeHeadingIds</code>.</td></tr>
+        <tr><td class="mono">rehype-external-links</td><td class="mono">3.0.0</td><td>Outbound links get <code>rel="noopener noreferrer"</code>.</td></tr>
+        <tr><td class="mono">sharp</td><td class="mono">0.35.4</td><td>Image pipeline behind <code>astro:assets</code>.</td></tr>
+        <tr><td class="mono">@fontsource-variable/*</td><td class="mono">5.3.0</td><td>Self-hosted fonts: no Google Fonts request, no third-party dependency.</td></tr>
+        <tr><td class="mono">linkinator</td><td class="mono">8.1.0</td><td>Link check in CI.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer class="doc">
+  <span>DOC 02 · BUILD SPEC</span>
+  <span>drbwa.github.io rebuild</span>
+  <span>September 2026</span>
+</footer>
+</div>
+
+<script>
+document.querySelectorAll('button.cp').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const code = btn.closest('figure').querySelector('code');
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code.innerText);
+      const was = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = was; }, 1400);
+    } catch (e) {
+      btn.textContent = 'Select manually';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
+    }
+  });
+});
+</script>
+
+</body></html>
