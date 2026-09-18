@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Astro rebuild — implementation and owner checklist</title>
+  <style>
+    :root { color-scheme: light dark; --bg:#f4f6f5; --card:#fff; --ink:#12181a; --muted:#53615d; --line:#cbd6d1; --accent:#075b49; --soft:#e3f0eb; }
+    @media (prefers-color-scheme:dark) { :root { --bg:#0d1211; --card:#171e1c; --ink:#e5ece9; --muted:#a6b6b0; --line:#394a44; --accent:#78d5b5; --soft:#19352b; } }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif; }
+    main { max-width:980px; margin:auto; padding:34px 22px 90px; }
+    h1,h2,h3 { line-height:1.2; }
+    h1 { font:600 clamp(2.1rem,5vw,3.2rem)/1.12 Georgia,serif; margin:.3em 0; }
+    h2 { font:600 1.75rem/1.2 Georgia,serif; border-top:2px solid var(--ink); padding-top:18px; margin-top:56px; }
+    h3 { font-size:1.1rem; margin:1.6em 0 .5em; }
+    p,ul,ol { max-width:75ch; }
+    a { color:var(--accent); text-underline-offset:3px; }
+    a:focus-visible,input:focus-visible,button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+    code { font:.88em ui-monospace,SFMono-Regular,Consolas,monospace; overflow-wrap:anywhere; }
+    .kicker,.meta,.tag { font:600 .75rem ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.07em; text-transform:uppercase; }
+    .kicker { color:var(--accent); }
+    .meta,.small { color:var(--muted); }
+    nav { display:flex; flex-wrap:wrap; gap:8px 18px; padding:16px 0; border-block:1px solid var(--line); }
+    .card { border:1px solid var(--line); background:var(--card); border-radius:5px; padding:18px 22px; margin:16px 0; }
+    .card h3 { margin-top:0; }
+    .phase { display:grid; grid-template-columns:80px 1fr; gap:16px; border-top:1px solid var(--line); padding:20px 0; }
+    .num { color:var(--accent); font:600 1.25rem ui-monospace,SFMono-Regular,Consolas,monospace; }
+    .phase h3 { margin:0 0 7px; }
+    .phase p { margin:6px 0; }
+    .tag { display:inline-block; padding:2px 7px; color:var(--accent); background:var(--soft); border-radius:3px; }
+    .checks { list-style:none; padding:0; max-width:none; }
+    .checks li { margin:0; border-top:1px solid var(--line); }
+    .checks label { display:flex; gap:12px; align-items:flex-start; padding:12px 0; cursor:pointer; }
+    .checks input { width:19px; height:19px; flex:none; margin:3px 0 0; accent-color:var(--accent); }
+    .checks strong { display:block; }
+    .checks small { display:block; color:var(--muted); font-size:.9rem; margin-top:2px; }
+    .note { border-left:4px solid var(--accent); background:var(--soft); padding:14px 18px; margin:20px 0; }
+    .owner { border-left:4px solid var(--accent); }
+    .gate { border-left:4px solid #a66b16; }
+    table { width:100%; border-collapse:collapse; font-size:.94rem; }
+    th,td { padding:10px 9px; border-bottom:1px solid var(--line); vertical-align:top; text-align:left; }
+    th { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; }
+    .scroll { overflow-x:auto; }
+    button { font:inherit; color:var(--ink); background:var(--card); border:1px solid var(--line); padding:7px 11px; border-radius:4px; cursor:pointer; }
+    @media (max-width:640px) { .phase { grid-template-columns:1fr; gap:2px; } main { padding-inline:16px; } }
+    @media print { :root { color-scheme:light; --bg:white; --card:white; --ink:black; --muted:#444; --line:#aaa; --accent:#075b49; --soft:#eee; } nav,button { display:none; } main { max-width:none; padding:0; } .card,.phase { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+<main>
+  <p class="kicker">Document 06 · 17 September 2026</p>
+  <h1>Astro rebuild: implementation and owner checklist</h1>
+  <p>This is the working sequence for rebuilding <code>drbwa.github.io</code> on the existing <code>astro-rebuild</code> branch. It assigns each handoff, gives review criteria, and lists every action that needs Bruno's accounts or judgment. Open this file directly in a browser; it needs no server, fonts, or network connection. Checkboxes can be printed and are saved when the browser permits local storage for local files.</p>
+  <p class="meta">Current repo state at review: Jekyll source still present · branch astro-rebuild exists · Astro implementation has not begun</p>
+  <nav aria-label="Page sections"><a href="#sequence">Build sequence</a><a href="#owner">Your actions</a><a href="#reviews">Review gates</a><a href="#corrections">Corrections to source documents</a><a href="#finish">Completion</a></nav>
+
+  <section id="sequence">
+    <h2>Build sequence</h2>
+    <p>The implementer owns steps 0–6. Bruno's actions are collected below in the order they become necessary. The existing <a href="02-build-spec.html">build spec</a>, <a href="03-design-copy.html">design and copy</a>, <a href="04-launch-runbook.html">launch runbook</a>, and <a href="05-syndication.html">syndication addendum</a> provide the detailed recipes. This plan resolves their handoffs and a few conflicts.</p>
+    <div class="phase"><span class="num">00</span><div><h3>Freeze the baseline</h3><p><span class="tag">Implementer</span> Confirm a clean worktree and the branch; tag and push the last Jekyll commit as <code>pre-astro</code>. Capture the live URLs, response codes, titles and redirects in ignored <code>.baseline/</code>. Record existing <code>/</code>, <code>/publications/</code>, <code>/blog/</code>, <code>/404.html</code>, and the feed behavior.</p><p><strong>Exit:</strong> remote tag exists and baseline can be compared with the new build. Keep Jekyll files through launch.</p></div></div>
+    <div class="phase"><span class="num">01</span><div><h3>Scaffold and configure Astro</h3><p><span class="tag">Implementer</span> Follow DOC 02 P1: pinned dependencies and lockfile, scripts, ignore rules, Astro config, content schema, constants, CI and a deploy workflow limited to <code>master</code>. Add DOC 05's syndication schema and constants now. Select the unified Markdown processor explicitly; prove maths and heading anchors in an actual rendered page.</p><p><strong>Exit:</strong> clean install, build and type check pass; malformed front matter fails with a useful file name; the branch CI run is green. Do not switch Pages source yet.</p></div></div>
+    <div class="phase"><span class="num">02</span><div><h3>Build the design system and site shell</h3><p><span class="tag">Implementer</span> Add the three stylesheets, metadata, layouts, header, footer, theme toggle and static assets from DOC 02 P2 and DOC 03. Put the chosen domain in Astro <code>site</code>, <code>SITE_URL</code>, <code>public/CNAME</code>, and <code>robots.txt</code>. Keep the newsletter link as a plain link; add no Substack embed.</p><p><strong>Exit:</strong> light, dark, OS preference and stored preference work; canonical, feed and sitemap links point to the same host; output includes <code>CNAME</code> and <code>.nojekyll</code>.</p></div></div>
+    <div class="phase"><span class="num">03</span><div><h3>Implement and review the pages</h3><p><span class="tag">Implementer + Bruno review</span> Build home, writing index, publications, CV and 404. Use DOC 03 §5 copy, with DOC 05 §6's replacement writing intro. Get Bruno's factual and tone review before treating that copy as final. Check all old public URLs and keep the CV free of phone and street address.</p><p><strong>Exit:</strong> Bruno approves the exact displayed copy; pages are navigable at narrow and wide widths; no placeholder or stale profile facts remain.</p></div></div>
+    <div class="phase"><span class="num">04</span><div><h3>Finish the post pipeline</h3><p><span class="tag">Implementer</span> Implement the MDX route, <code>/feed.xml</code>, figures, callouts, Mermaid, maths, code highlighting and draft filtering. Add DOC 05's subscribe and syndication components. Make the draft fixture cover diagrams, charts, tables, maths and a syndicated link; verify it is absent from the production output.</p><p><strong>Exit:</strong> content validation and rendering checks pass in both themes; the home page has no Mermaid bundle; subscription appears only on the writing index and posts; no iframe is introduced.</p></div></div>
+    <div class="phase"><span class="num">05</span><div><h3>Test and prepare the release</h3><p><span class="tag">Implementer + Bruno review</span> Run DOC 04 §§1–3 plus DOC 05 §7: clean build, type check, link check, URL parity, feed/sitemap, accessibility, mobile widths, zero unwanted JavaScript, and live preview of the built output. Record results and exceptions in the pull request. Share a preview or local screenshots for Bruno's visual and copy review. Prepare a release note with exact DNS and Pages steps.</p><p><strong>Exit:</strong> all required checks pass, Bruno approves the preview and the merge/cutover plan, and the rollback tag is available.</p></div></div>
+    <div class="phase"><span class="num">06</span><div><h3>Launch, verify, and clean up</h3><p><span class="tag">Bruno + implementer</span> Bruno registers/configures the domain and changes GitHub Pages source to Actions at the agreed launch time. Merge <code>astro-rebuild</code> into <code>master</code>; watch the deployment and confirm the custom domain, certificate and HTTPS. Verify public URLs and old-host redirects. Then remove Jekyll files in a separate commit, update the root README, and submit the sitemap. Configure Substack before the first syndicated post.</p><p><strong>Exit:</strong> canonical site and redirects work over HTTPS, domain ownership is verified, and the post-launch checks below are complete.</p></div></div>
+  </section>
+
+  <section id="owner">
+    <h2>Your actions, step by step</h2>
+    <p>Only these items require your personal judgment or access to Cloudflare, GitHub, Search Console, or Substack. Share decisions and screenshots or status messages with the implementer; never send passwords or verification tokens in a pull request. Some account menus can change, so use the named setting and confirm its current label before saving.</p>
+
+    <div class="card owner"><h3>A. Confirm the content and addresses <span class="tag">Before step 03</span></h3>
+      <ol class="checks">
+        <li><label><input type="checkbox" id="a1"><span><strong>Confirm the canonical domain.</strong><small>Plan: <code>brunowassermann.com</code>. If you prefer a different hostname, tell the implementer before the four site files are finalized. Confirm whether you also own or intend to buy <code>drbwa.com</code>; its redirect is conditional.</small></span></label></li>
+        <li><label><input type="checkbox" id="a2"><span><strong>Review every proposed factual claim in DOC 03 §5.</strong><small>Open <a href="03-design-copy.html">the copy pack</a>. Check current role, dates, publications, patents, projects, links and contact email. Send a list of corrections with the exact replacement words.</small></span></label></li>
+        <li><label><input type="checkbox" id="a3"><span><strong>Approve the public CV boundary.</strong><small>Confirm that <code>/cv/</code> is a web page with email only. Check that it contains no phone number, street address, or old PDF link.</small></span></label></li>
+      </ol>
+    </div>
+
+    <div class="card owner"><h3>B. Review the implementation <span class="tag">After step 05, before launch</span></h3>
+      <ol class="checks">
+        <li><label><input type="checkbox" id="b1"><span><strong>Open the supplied preview or screenshots.</strong><small>Review home, writing, publications, CV, 404 and a sample post on desktop and phone. Check both color themes and that the writing and subscription language feels right.</small></span></label></li>
+        <li><label><input type="checkbox" id="b2"><span><strong>Read the final copy against your corrections.</strong><small>Confirm the current employment description, dates, links and CV details. Mark each requested change resolved in the pull request.</small></span></label></li>
+        <li><label><input type="checkbox" id="b3"><span><strong>Review the release evidence.</strong><small>Look for green CI, the clean-build/type/link results, URL parity, draft exclusion, feed, accessibility/mobile notes, and a rollback pointer to <code>pre-astro</code>. Approve the pull request only when the listed gates are met.</small></span></label></li>
+      </ol>
+    </div>
+
+    <div class="card owner"><h3>C. Prepare the custom domain <span class="tag">Before merge</span></h3>
+      <ol class="checks">
+        <li><label><input type="checkbox" id="c1"><span><strong>Register or confirm <code>brunowassermann.com</code> in Cloudflare.</strong><small>Cloudflare dashboard → Domain Registration. If already registered elsewhere, use its current DNS provider or move DNS deliberately; do not buy it twice. Tell the implementer when the zone is ready.</small></span></label></li>
+        <li><label><input type="checkbox" id="c2"><span><strong>Add GitHub Pages DNS records for the apex and <code>www</code>.</strong><small>In Cloudflare → DNS → Records, follow the current <a href="https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site">GitHub Pages instructions</a>. DOC 04 §4.1 lists the planned records. Set every record that points at GitHub to <b>DNS only</b> (grey cloud). Do not mix GitHub's address-record option with apex CNAME flattening.</small></span></label></li>
+        <li><label><input type="checkbox" id="c3"><span><strong>Verify DNS before the switch.</strong><small>Use the <code>dig</code> commands in <a href="04-launch-runbook.html">DOC 04 §4.1</a>. Confirm apex and <code>www</code> resolve to GitHub, not Cloudflare proxy addresses. Leave GitHub-facing records DNS only for certificate renewal.</small></span></label></li>
+      </ol>
+    </div>
+
+    <div class="card owner"><h3>D. Perform the GitHub launch <span class="tag">At the agreed cutover</span></h3>
+      <ol class="checks">
+        <li><label><input type="checkbox" id="d1"><span><strong>Set Pages source to GitHub Actions.</strong><small>Repository <code>drbwa/drbwa.github.io</code> → Settings → Pages → Build and deployment → Source → GitHub Actions. Do this immediately before merging the approved branch.</small></span></label></li>
+        <li><label><input type="checkbox" id="d2"><span><strong>Approve and merge the reviewed pull request.</strong><small>Confirm it targets <code>master</code> and that CI is green. Watch the “Deploy to GitHub Pages” workflow until it succeeds. If the implementer owns the merge, explicitly tell them the Pages source is switched.</small></span></label></li>
+        <li><label><input type="checkbox" id="d3"><span><strong>Confirm the custom domain and enforce HTTPS.</strong><small>Settings → Pages should show <code>brunowassermann.com</code>. If blank, enter it and save. Wait for GitHub's DNS check and certificate, then select Enforce HTTPS. If certificate issuance stalls, recheck that GitHub-facing DNS is DNS only; see DOC 04 §4.2.</small></span></label></li>
+        <li><label><input type="checkbox" id="d4"><span><strong>Verify ownership of the domain with GitHub.</strong><small>GitHub account Settings → Pages → Add a domain. Copy the TXT challenge GitHub gives you into Cloudflare DNS, then click Verify. Keep that TXT record permanently. Do not copy a sample token from a document.</small></span></label></li>
+        <li><label><input type="checkbox" id="d5"><span><strong>Check the public site yourself.</strong><small>Open <code>https://brunowassermann.com/</code>, <code>/publications/</code>, <code>/cv/</code>, <code>/blog/</code>, and <code>/feed.xml</code>. Confirm the browser shows a valid certificate and that old <code>drbwa.github.io</code> page URLs redirect to their matching new paths. Tell the implementer before Jekyll deletion.</small></span></label></li>
+      </ol>
+    </div>
+
+    <div class="card owner"><h3>E. Finish external services <span class="tag">After the site works</span></h3>
+      <ol class="checks">
+        <li><label><input type="checkbox" id="e1"><span><strong>Set up <code>drbwa.com</code> redirect, if you own it.</strong><small>Use a separate Cloudflare zone and the redirect expression <code>concat("https://brunowassermann.com", http.request.uri.path)</code>, with status 301 and “preserve query string” enabled. DOC 04 §4.2 has the recipe. This redirect zone uses proxied placeholder records; the canonical site's GitHub-facing records stay DNS only. Test both root and a nested path.</small></span></label></li>
+        <li><label><input type="checkbox" id="e2"><span><strong>Add the domain to Google Search Console.</strong><small>Verify the domain with its DNS TXT record, then submit <code>https://brunowassermann.com/sitemap-index.xml</code>. Record any coverage errors for the implementer.</small></span></label></li>
+        <li><label><input type="checkbox" id="e3"><span><strong>Create the Substack publication.</strong><small>Use <code>brunowassermann.substack.com</code> if available. Add the name, description, About text and welcome email from <a href="05-syndication.html">DOC 05 §5</a>; review them for factual accuracy. Tell the implementer the final URL before the newsletter link is locked.</small></span></label></li>
+        <li><label><input type="checkbox" id="e4"><span><strong>Set Substack preferences.</strong><small>Review its subscribe pop-up, recommendations and cross-recommendation settings. Decide whether to disable intrusive prompts. The site will link out to Substack and will not embed its form.</small></span></label></li>
+      </ol>
+    </div>
+
+    <div class="card owner"><h3>F. Each time you publish a post <span class="tag">Recurring</span></h3>
+      <ol class="checks">
+        <li><label><input type="checkbox" id="f1"><span><strong>Publish on the site first.</strong><small>Review the post, remove <code>draft: true</code>, build and deploy. Confirm the canonical <code>/blog/&lt;slug&gt;/</code> URL returns the finished post before opening Substack.</small></span></label></li>
+        <li><label><input type="checkbox" id="f2"><span><strong>Make the Substack copy.</strong><small>Paste the prose; put a link to the canonical site post in the first paragraph. Convert Mermaid to an image, use a light chart image, repair maths/tables, and check email preview as detailed in DOC 05 §§3–4.</small></span></label></li>
+        <li><label><input type="checkbox" id="f3"><span><strong>Record the Substack URL back on the site.</strong><small>After sending, add it to the post's <code>syndication</code> front matter, build and deploy again. Confirm the “Also published on Substack” link works.</small></span></label></li>
+      </ol>
+      <p class="small">The three recurring boxes can be cleared with the button below after each post.</p><button type="button" id="reset-post">Clear post checklist</button>
+    </div>
+  </section>
+
+  <section id="reviews">
+    <h2>Review gates</h2>
+    <div class="scroll"><table><thead><tr><th>When</th><th>Bruno reviews</th><th>Evidence from implementer</th><th>Next step</th></tr></thead><tbody>
+      <tr><td>Before page copy is final</td><td>Facts, dates, wording, email, public CV boundary, chosen domain</td><td>DOC 03 §5 text with proposed corrections applied; DOC 05 writing intro</td><td>Build final page content</td></tr>
+      <tr><td>Before merge</td><td>Pages and sample post in both themes and phone width; exact copy; release timing</td><td>Preview or screenshots, PR diff, green CI, DOC 04 and DOC 05 check results</td><td>Approve merge and switch Pages source</td></tr>
+      <tr><td>After deploy, before cleanup</td><td>HTTPS, pages, feed, old URL redirects, domain ownership</td><td>Deploy run, live URL/status checks, DNS and Pages status</td><td>Remove Jekyll in separate commit</td></tr>
+      <tr><td>After cleanup</td><td>First post workflow and Substack copy</td><td>Site first, email preview, first-paragraph canonical link, back-link on site</td><td>Adopt recurring publishing checklist</td></tr>
+    </tbody></table></div>
+    <div class="note"><strong>Rollback:</strong> If the deployed site is wrong, revert the Astro merge or redeploy the last good commit. If reverting to Jekyll, restore the <code>pre-astro</code> tree and switch Pages source back to the branch only after confirming that source still builds. DOC 04 §5 has the specific cases. Keep the old files until the live verification gate has passed.</div>
+  </section>
+
+  <section id="corrections">
+    <h2>Corrections and checks before following the older recipes</h2>
+    <ul>
+      <li><strong>These repo documents are snapshots:</strong> <a href="README.md">the rebuild index</a> says its linked private artifacts may be newer. Before coding from a recipe, reconcile any newer artifact that Bruno supplies; record changes in this repository so the implementation has one reviewable source.</li>
+      <li><strong>DOC 02 T4.2 has a stale exit condition:</strong> it says feed links should point to <code>drbwa.github.io</code>. They must point to the chosen canonical domain, as DOC 02 T1.8 and DOC 04 require.</li>
+      <li><strong>DOC 02 P3 points at the wrong copy section:</strong> use DOC 03 §5, not §3. Use DOC 05 §6 for the revised writing-index intro and subscribe wording.</li>
+      <li><strong>DOC 05 modifies P4 and the launch checks:</strong> implement its five build deltas and four checks as part of the main work, even though DOC 02–04 were written earlier.</li>
+      <li><strong>Verify tool and service details at implementation time:</strong> compare pinned package APIs, GitHub Actions versions, DNS addresses and account screens with current official documentation. Keep the explicit unified Markdown processor; <a href="https://docs.astro.build/en/guides/markdown-content/">Astro's Markdown docs</a> confirm why it is needed. <a href="https://docs.astro.build/en/guides/deploy/github/">Astro's Pages guide</a> confirms <code>public/CNAME</code> for a custom domain.</li>
+      <li><strong>DOC 04's domain procedure is a launch recipe, not proof the domains are registered:</strong> check ownership and current DNS before making changes. If <code>drbwa.com</code> is unavailable, omit that optional redirect and note it in the release.</li>
+      <li><strong>DOC 03 copy is dated September 2026:</strong> Bruno must confirm all claims before publication. The old Jekyll pages do not establish that newer biographical claims are current.</li>
+    </ul>
+  </section>
+
+  <section id="finish">
+    <h2>Definition of complete</h2>
+    <p>The work is complete when the approved Astro site is served at the confirmed canonical domain over HTTPS; the old public URLs redirect correctly; all required local, CI and manual checks pass; the custom domain is verified with GitHub; Jekyll has been removed in its own commit; the README explains the new publishing workflow; and Bruno can publish a post on the site and then syndicate it to Substack using section F.</p>
+    <p class="small">Related documents: <a href="01-decision.html">decision brief</a> · <a href="02-build-spec.html">build spec</a> · <a href="03-design-copy.html">design and copy</a> · <a href="04-launch-runbook.html">launch runbook</a> · <a href="05-syndication.html">syndication</a>.</p>
+  </section>
+</main>
+<script>
+  const key = 'astro-rebuild-owner-checklist-v1';
+  const boxes = [...document.querySelectorAll('input[type="checkbox"]')];
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (_) {}
+  boxes.forEach(box => {
+    box.checked = saved[box.id] === true;
+    box.addEventListener('change', () => {
+      try { localStorage.setItem(key, JSON.stringify(Object.fromEntries(boxes.map(item => [item.id, item.checked])))); } catch (_) {}
+    });
+  });
+  document.getElementById('reset-post').addEventListener('click', () => {
+    boxes.filter(box => box.id.startsWith('f')).forEach(box => { box.checked = false; box.dispatchEvent(new Event('change')); });
+  });
+</script>
+</body>
+</html>

@@ -16,10 +16,12 @@ chat log.
 | 03 | [`03-design-copy.html`](03-design-copy.html) | The design system as fixed tokens and stylesheets, plus every word of the new site copy | You are building it, or reviewing the words |
 | 04 | [`04-launch-runbook.html`](04-launch-runbook.html) | Verification checklists, the Cloudflare/GitHub Pages cutover, rollback, and the guide to writing a post with diagrams and charts | You are launching it, or writing a post later |
 | 05 | [`05-syndication.html`](05-syndication.html) | The Substack half: build deltas, the per-post cross-posting checklist, and what survives the paste | You are wiring up syndication |
+| 06 | [`06-implementation-plan.html`](06-implementation-plan.html) | Ordered implementation phases, review gates, and a self-contained checklist of every action Bruno needs to take | You are planning the work or preparing your side of launch |
 
 Documents 02, 03 and 04 predate the syndication decision and are unchanged. Document 05
 carries the additions rather than duplicating them, so their internal navigation strips
-still show four documents.
+still show four documents. Document 06 turns the set into a handoff plan and flags
+the stale references in DOC 02; use it alongside the detailed recipes.
 
 ## Decisions taken
 

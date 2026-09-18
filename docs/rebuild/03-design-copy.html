@@ -251,7 +251,7 @@ footer.doc{border-top:1px solid var(--rule);margin-top:70px;padding-top:22px;fon
           <a class="d-a" href="#specimen">CV</a>
         </div>
         <p class="d-name">Bruno Wassermann</p>
-        <p class="d-role">Research Staff Member · IBM Research, Haifa</p>
+        <p class="d-role">Senior Software Engineer · IBM Israel Research Lab</p>
         <p class="d-lead">I work on making large systems behave — first the distributed infrastructure, then the monitoring around it, and now the cost and reliability of AI agents.</p>
         <p class="d-p">Right now I lead a small team on agent cost optimisation. The idea is an uncertainty-aware router that decides, step by step, when a small open-weight model is good enough and when a request should be escalated to a larger one.</p>
         <hr class="d-rule">
@@ -601,18 +601,20 @@ a:hover { color: var(--link-hover); }
   <div class="copy">
     <p class="lab"><span>Name and role line</span><span>display + mono</span></p>
     <p style="font-family:Newsreader,serif;font-size:1.7rem;font-weight:600;margin-bottom:4px">Bruno Wassermann</p>
-    <p style="font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-muted)">Research Staff Member · IBM Research, Haifa</p>
+    <p style="font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-muted)">Senior Software Engineer · IBM Israel Research Lab</p>
   </div>
   <div class="copy">
     <p class="lab"><span>Lead</span><span>.lead</span></p>
     <p style="font-family:Newsreader,serif;font-size:1.2rem;line-height:1.5">I work on making large systems behave — first the distributed infrastructure, then the monitoring around it, and now the cost and reliability of AI agents.</p>
   </div>
   <div class="copy">
-    <p class="lab"><span>Body</span><span>four paragraphs</span></p>
-    <p>Right now I lead a small team on <strong>agent cost optimisation</strong>. The idea is an uncertainty-aware router that decides, step by step, when a small open-weight model is good enough and when a request should be escalated to a larger one. The routing is the easy part; the work is in designing controlled experiments that show the return honestly, and then generalising the whole thing into <strong>llm-d</strong> so it becomes a capability anyone running open-weight models can switch on, rather than a result in a paper.</p>
-    <p>Before that I spent a decade at the unglamorous end of cloud. I helped build <strong>Watson Developer Cloud</strong> from its first open beta through a lot of growth, and kept its core distributed services close to zero downtime with a team of two to four people. That taught me the thing that has shaped everything since: if you page a human every time a metric wobbles, you do not have monitoring, you have noise. So I moved up the stack into <strong>AIOps</strong> — anomaly detection and root-cause analysis over logs and metrics — and got it into production with the team that runs IBM Cloud's network. Along the way I built the release-verification harness that stops a change in a training pipeline from quietly degrading customers' Watson Assistant models.</p>
-    <p>Most recently I led <strong>LakeGuard</strong>, on access control for structured and vector data in Gen-AI lakehouses: taking the messy permissions that arrive from Box and SharePoint, mapping them into one coherent model, and then enforcing it across Iceberg, Milvus, Presto and Postgres without paying for it in query latency.</p>
-    <p>I have a PhD from UCL on data-driven detection and diagnosis of failures in service compositions, six granted patents, and papers at EuroSys, ICSE, WWW and ICSOC. Earlier lives: Eclipse committer on the BPEL Designer, Grid workflow tooling at UCL, and a first job at Goldman Sachs that taught me what a release actually costs. What keeps me going is curiosity and a low tolerance for real pain points — ideally building things that help people find something out faster. I like Python, vim and tmux, small teams, and being wrong early.</p>
+    <p class="lab"><span>Body</span><span>six paragraphs</span></p>
+    <p>Right now I lead a small team working on reducing the cost of agentic workflows without sacrificing task quality. We are developing an uncertainty-aware router that decides at each step whether a smaller open-weight model is likely to be sufficient or whether the task should be escalated to a larger model. The routing logic itself is only part of the problem. Much of the work is in designing controlled experiments that measure the savings and the effect on task success reliably. We are also working on integrating this into <strong>llm-d</strong>, with the aim of making it a practical capability for people running open-weight models rather than leaving it as an experimental result.</p>
+    <p>Before that, I spent roughly a decade working on cloud systems. I helped build <strong>Watson Developer Cloud</strong> from its first open beta through its subsequent growth, and worked with a team of two to four engineers to operate its core distributed services with close to zero downtime. That experience shaped how I think about operational systems: monitoring should help people identify problems, not page them whenever a metric moves.</p>
+    <p>I later moved into <strong>AIOps</strong>, working on anomaly detection and root-cause analysis over logs and metrics. My team put this into production together with the group operating IBM Cloud’s network. I also built a release-verification system that detects when a change to a training pipeline degrades customers’ Watson Assistant models before the change is released.</p>
+    <p>More recently, I led <strong>LakeGuard</strong>, a project on access control for structured and vector data in GenAI lakehouses. We took permissions originating in systems such as Box and SharePoint, mapped them into a common model, and enforced them across Iceberg, Milvus, Presto and Postgres while exploring how to carefully manage query latency.</p>
+    <p>I have a PhD from UCL on data-driven detection and diagnosis of failures in service compositions, six granted patents, and papers at EuroSys, ICSE, WWW and ICSOC. Earlier in my career, I was an Eclipse committer on the BPEL Designer, worked on Grid workflow tooling at UCL, and started out at Goldman Sachs, where I learned how much a production release can actually cost.</p>
+    <p>The common thread in my work is curiosity about difficult technical problems and a preference for problems that matter in practice. I am most at home when a problem is still poorly defined: turning it into questions that can be tested, working through the evidence, and then building something that holds up in practice. I like small teams where people trust and support one another, feel safe disagreeing openly, and keep getting better at designing experiments that tell us early when we are wrong.</p>
   </div>
   <div class="copy">
     <p class="lab"><span>Then</span><span>three most recent posts, then nothing else</span></p>
@@ -672,7 +674,7 @@ a:hover { color: var(--link-hover); }
     <p>A condensed version — twenty-three years, shortened to the parts that still matter. For the full document, or anything that needs a signature, <a href="mailto:bruno.wassermann@gmail.com">email me</a>.</p>
   </div>
   <div class="copy">
-    <p class="lab"><span>IBM Research, Haifa</span><span>Research Staff Member · 2013 – present</span></p>
+    <p class="lab"><span>IBM Israel Research Lab</span><span>Research Staff Member · 2013 – present</span></p>
     <ul class="cvlist">
       <li><span class="yr">2025 –</span><span><b>Agent cost optimisation</b> — technical team lead. Uncertainty-aware dynamic routing to improve the cost–quality trade-off of LLM agent flows; controlled experiments to establish the return; generalising the approach into llm-d.<span class="tech">vLLM · llm-d · Go · Python · OpenShift · LiteLLM</span></span></li>
       <li><span class="yr">2024 – 25</span><span><b>LakeGuard</b> — technical team lead. Access control for structured and vector data in Gen-AI lakehouses: one model for heterogeneous ACLs, fine-grained enforcement across four query and storage systems, and a benchmark of what each filtering strategy costs in latency.<span class="tech">Presto · Iceberg · Milvus · OpenSearch · Postgres · Spark</span></span></li>
@@ -722,7 +724,7 @@ a:hover { color: var(--link-hover); }
     <table>
       <thead><tr><th>Page</th><th>Description</th></tr></thead>
       <tbody>
-        <tr><td class="mono">/</td><td>Research Staff Member at IBM Research, Haifa. Distributed systems, operations, and the cost of running AI agents.</td></tr>
+        <tr><td class="mono">/</td><td>Senior Software Engineer at IBM Israel Research Lab. Distributed systems, operations, and the cost of running AI agents.</td></tr>
         <tr><td class="mono">/blog/</td><td>Notes on distributed systems, operations, and getting useful work out of models.</td></tr>
         <tr><td class="mono">/publications/</td><td>Peer-reviewed papers, six granted patents and talks by Bruno Wassermann.</td></tr>
         <tr><td class="mono">/cv/</td><td>Condensed CV: IBM Research, Watson Developer Cloud, AIOps, LakeGuard, agent cost optimisation.</td></tr>
