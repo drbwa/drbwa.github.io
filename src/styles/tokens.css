@@ -1,0 +1,67 @@
+/* Every token is declared in bare :root first, then redefined for the two
+   dark states. A colour that exists only inside a media query renders the
+   wrong theme in the un-stamped, follow-the-OS case. */
+:root {
+  color-scheme: light dark;
+
+  --bg:          #FCFCFD;
+  --bg-sub:      #F2F3F6;
+  --fg:          #14161A;
+  --fg-muted:    #5C616B;
+  --fg-faint:    #868C97;
+  --rule:        #E2E4EA;
+  --rule-strong: #C8CCD6;
+  --link:        #2A4C8F;
+  --link-hover:  #16305E;
+  --selection:   #DCE6F8;
+
+  --ff-prose: "Newsreader Variable", Newsreader, Georgia, "Times New Roman", serif;
+  --ff-ui:    "Public Sans Variable", "Public Sans", system-ui, -apple-system, sans-serif;
+  --ff-mono:  "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+  --fs-display: clamp(2rem, 5vw, 2.75rem);
+  --fs-h1:      clamp(1.75rem, 4vw, 2.25rem);
+  --fs-h2:      1.4rem;
+  --fs-h3:      1.125rem;
+  --fs-body:    1.1875rem;
+  --fs-ui:      0.9375rem;
+  --fs-meta:    0.8125rem;
+  --fs-label:   0.6875rem;
+
+  --lh-tight: 1.15;
+  --lh-body:  1.65;
+
+  --s1:.25rem; --s2:.5rem; --s3:.75rem; --s4:1rem;
+  --s5:1.5rem; --s6:2rem;  --s7:3rem;   --s8:4.5rem;
+
+  --measure: 68ch;
+  --measure-wide: 940px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:          #101215;
+    --bg-sub:      #171A1F;
+    --fg:          #E6E8EC;
+    --fg-muted:    #9BA2AE;
+    --fg-faint:    #757C88;
+    --rule:        #23262D;
+    --rule-strong: #363B45;
+    --link:        #8FB2EE;
+    --link-hover:  #B7CDF6;
+    --selection:   #1A2333;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:          #101215;
+  --bg-sub:      #171A1F;
+  --fg:          #E6E8EC;
+  --fg-muted:    #9BA2AE;
+  --fg-faint:    #757C88;
+  --rule:        #23262D;
+  --rule-strong: #363B45;
+  --link:        #8FB2EE;
+  --link-hover:  #B7CDF6;
+  --selection:   #1A2333;
+}
