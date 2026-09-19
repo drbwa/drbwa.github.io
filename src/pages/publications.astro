@@ -1,0 +1,65 @@
+---
+import Page from '../layouts/Page.astro';
+
+const description = 'Peer-reviewed papers, six granted patents and talks by Bruno Wassermann.';
+
+const papers = [
+  { title: 'ADEPTUS: Hybrid Anomaly Detection Prioritization for Network Logs at Cloud Scale', authors: 'David Ohana, Bruno Wassermann, Nicolas Dupuis, Elliot Kolodner, Eran Raichstein, Michal Malka', venue: 'EuroSys 2022' },
+  { title: 'Monere: Monitoring of Service Compositions for Failure Diagnosis', authors: 'Bruno Wassermann, Wolfgang Emmerich', venue: 'ICSOC 2011' },
+  { title: 'Improving Wide-Area Distributed System Availability', authors: 'Bruno Wassermann', venue: 'ICSE 2010, Doctoral Symposium' },
+  { title: 'Distributed Cross-Domain Configuration Management', authors: 'Liliana Pasquale, Jim Laredo, Heiko Ludwig, Kamal Bhattacharya, Bruno Wassermann', venue: 'ICSOC 2009' },
+  { title: 'Distributed Cross-Domain Change Management', authors: 'Bruno Wassermann, Heiko Ludwig, Jim Laredo, Kamal Bhattacharya, Liliana Pasquale', venue: 'ICWS 2009 — Best Student Paper' },
+  { title: 'REST-Based Management of Loosely Coupled Services', authors: 'Heiko Ludwig, Jim Laredo, Kamal Bhattacharya, Liliana Pasquale, Bruno Wassermann', venue: 'WWW 2009' },
+  { title: 'Reliable Scientific Service Compositions', authors: 'Bruno Wassermann, Wolfgang Emmerich', venue: 'WESOA 2006' },
+  { title: 'Web Service Orchestrations with BPEL', authors: 'Liang Chen, Bruno Wassermann, Wolfgang Emmerich, Howard Foster', venue: 'ICSE 2006' },
+  { title: 'Sedna: A BPEL-Based Environment for Visual Scientific Workflow Modelling', authors: 'Bruno Wassermann, Wolfgang Emmerich, Ben Butchart, Nick Cameron, Liang Chen, Jignesh Patel', venue: 'In Workflows for eScience, Springer, 2006' },
+  { title: 'Grid Service Orchestration Using the Business Process Execution Language (BPEL)', authors: 'Wolfgang Emmerich, Ben Butchart, Liang Chen, Bruno Wassermann, Sarah L. Price', venue: 'Journal of Grid Computing 3(3–4):283–304, 2005' },
+];
+
+const patents = [
+  { year: 'Mar 2020', title: 'Systems and Methods for Anomaly Detection in a Distributed Computing System', authors: 'Ohana, Wassermann, Rozenbaum', num: 'US20200073740A1' },
+  { year: 'Jul 2019', title: 'Management of Clustered and Replicated Systems in Dynamic Computing Environments', authors: 'Bortnikov, Laden, Wassermann, Zach', num: 'US10361995B2' },
+  { year: 'Jun 2019', title: 'Optimized Rolling Restart of Stateful Services to Minimize Disruption', authors: 'Rozenbaum, Wassermann', num: 'US20190173943A1' },
+  { year: 'Aug 2018', title: 'Managing Cooperative Computer Software Applications', authors: 'Barger, Laventman, Roytman, Wassermann', num: 'US20180225111A1' },
+  { year: 'Feb 2016', title: 'Methods for Transparent Management of Context and State in an Asynchronous Callback Flow', authors: 'Dvinsky, Roytman, Shachor, Shagin, Wassermann', num: 'US9262156B2' },
+  { year: 'Jul 2011', title: 'Change Management in Multidomain Environments', authors: 'Ludwig, Laredo, Bhattacharya, Pasquale, Wassermann', num: 'US7975031B2' },
+];
+
+const talks = [
+  { year: 'Oct 2019', title: 'Clue: evaluating the impact of a new training pipeline on models already in production', venue: "O'Reilly AI, London" },
+];
+---
+<Page title="Publications" description={description}>
+  <p>Peer-reviewed papers, granted patents and the occasional talk. Everything is also on <a href="https://scholar.google.com/citations?user=o3YKyy8AAAAJ&hl=en">Google Scholar</a>.</p>
+
+  <h2>Papers</h2>
+  <ul class="pub-list">
+    {papers.map((p) => (
+      <li>
+        <strong>{p.title}</strong>
+        <span class="pub-authors">{p.authors}</span>
+        <span class="pub-venue">{p.venue}</span>
+      </li>
+    ))}
+  </ul>
+
+  <h2>Patents</h2>
+  <ul class="pub-list">
+    {patents.map((p) => (
+      <li>
+        <span class="pub-year">{p.year}</span><strong>{p.title}</strong> — {p.authors}
+        <span class="pub-tech">{p.num}</span>
+      </li>
+    ))}
+  </ul>
+
+  <h2>Talks</h2>
+  <ul class="pub-list">
+    {talks.map((t) => (
+      <li>
+        <span class="pub-year">{t.year}</span><strong>{t.title}</strong>
+        <span class="pub-tech">{t.venue}</span>
+      </li>
+    ))}
+  </ul>
+</Page>
