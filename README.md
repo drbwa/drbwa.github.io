@@ -2,7 +2,7 @@
 
 Personal site of Bruno Wassermann, served at https://brunowassermann.com.
 Astro 7, deployed to GitHub Pages by GitHub Actions on every push to
-`master`. The repository is still called `drbwa.github.io`; that URL
+`main`. The repository is still called `drbwa.github.io`; that URL
 301-redirects to the custom domain.
 
 ## Requirements
@@ -58,5 +58,5 @@ and `$$...$$`. Full guide: DOC 04 section 6 of the rebuild plan
 
 ## Deploying
 
-Push to `master`. GitHub Pages is configured to build from Actions
+Push to `main`. GitHub Pages is configured to build from Actions
 (`.github/workflows/deploy.yml`), not from the legacy Jekyll builder.
