@@ -14,13 +14,14 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
     <p class="role">Senior Software Engineer &middot; IBM Israel Research Lab</p>
 
     <div class="prose">
-      <p class="lead">I work on making large systems behave — first the distributed infrastructure, then the monitoring around it, and now the cost and reliability of AI agents.</p>
+      <p class="lead">I work on making large systems behave. First the distributed infrastructure, then the monitoring around it, and now the cost and reliability of AI agents.</p>
 
       <p>Right now I lead a small team working on reducing the cost of agentic workflows without sacrificing task quality. We are developing an uncertainty-aware router that decides at each step whether a smaller open-weight model is likely to be sufficient or whether the task should be escalated to a larger model. The routing logic itself is only part of the problem. Much of the work is in designing controlled experiments that measure the savings and the effect on task success reliably. We are also working on integrating this into <strong>llm-d</strong>, with the aim of making it a practical capability for people running open-weight models rather than leaving it as an experimental result.</p>
 
       <p>Before that, I spent roughly a decade working on cloud systems. I helped build <strong>Watson Developer Cloud</strong> from its first open beta through its subsequent growth, and worked with a team of two to four engineers to operate its core distributed services with close to zero downtime. That experience shaped how I think about operational systems: monitoring should help people identify problems, not page them whenever a metric moves.</p>
 
-      <p>I later moved into <strong>AIOps</strong>, working on anomaly detection and root-cause analysis over logs and metrics. My team put this into production together with the group operating IBM Cloud's network. I also built a release-verification system that detects when a change to a machine training pipeline degrades customers' chatbot models before the change is released.</p>
+      <p>I later moved into <strong>AIOps</strong>, working on anomaly detection and root-cause analysis over logs and
+      metrics. My team put this into production together with the group operating IBM Cloud's network. I also built <strong>Clue</strong>, a release-verification system that detects when a change to a machine training pipeline degrades customers' chatbot models before the change is released.</p>
 
       <p>More recently, I led <strong>LakeGuard</strong>, a project on access control for structured and vector data in GenAI lakehouses. We took permissions originating in systems such as Box and SharePoint, mapped them into a common model, and enforced them across Iceberg, Milvus, Presto and Postgres while exploring how to carefully manage query latency.</p>
 

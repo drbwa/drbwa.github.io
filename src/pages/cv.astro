@@ -7,9 +7,9 @@ const description =
 
 const ibm = [
   { yr: '2025 –', title: 'Agent cost optimisation', body: 'technical team lead. Uncertainty-aware dynamic routing to improve the cost–quality trade-off of LLM agent flows; controlled experiments to establish the return; generalising the approach into llm-d.', tech: 'vLLM · llm-d · Go · Python · OpenShift · LiteLLM' },
-  { yr: '2024 – 25', title: 'LakeGuard', body: 'technical team lead. Access control for structured and vector data in Gen-AI lakehouses: one model for heterogeneous ACLs, fine-grained enforcement across four query and storage systems, and a benchmark of what each filtering strategy costs in latency.', tech: 'Presto · Iceberg · Milvus · OpenSearch · Postgres · Spark' },
+  { yr: '2024 – 25', title: 'LakeGuard', body: 'technical team lead. Access control for structured and vector data in Gen-AI lakehouses: one model for heterogeneous ACLs, fine-grained enforcement across multiple query and storage systems, benchmarking what each filtering strategy costs in latency.', tech: 'Presto · Iceberg · Milvus · OpenSearch · Postgres · Spark' },
   { yr: '2024', title: 'ARISE', body: 'models predicting the resource use, latency and throughput of LLM fine-tuning and inference jobs, so GPU type, count and batch size can be chosen rather than guessed.', tech: 'scikit-learn · XGBoost · pandas' },
-  { yr: '2023 – 24', title: 'Hybrid data flows', body: 'technical team lead. Optimising data processing that spans local clusters and cloud; a learning-based approach to cardinality estimation for SQL queries and user-defined functions.', tech: 'Kubeflow Pipelines · Apache Calcite · Substrait' },
+  { yr: '2023 – 24', title: 'Hybrid data flows', body: 'technical team lead. Optimising data processing that spans local clusters and cloud.', tech: 'Kubeflow Pipelines · Apache Calcite · Substrait' },
   { yr: '2021 – 24', title: 'Hybrid cloud data lifecycle management', body: 'technical lead. Policy-driven expiry, archival and transfer of data across Kubernetes and OpenShift clusters, from factory floor to cloud.', tech: 'Quarkus · Java · Kubernetes · MongoDB · Spark' },
   { yr: '2016 – 22', title: 'AIOps for IBM IaaS', body: 'tech lead. Anomaly detection and root-cause analysis over logs and metrics for site and network reliability engineers; adopted in production by the team running the IBM Cloud network in 2020.', tech: 'Python · Kotlin · Vue.js · Elasticsearch · Kafka · Grafana' },
   { yr: '2018 – 19', title: 'Watson Machine Learning Platform', body: "tech lead. Automated release-candidate verification for the NLU training pipeline behind Watson Assistant, so a continuous deployment cannot quietly degrade a customer's chatbot.", tech: 'Python · applied statistics' },
@@ -29,12 +29,12 @@ const education = [
   { yr: '2012', title: 'PhD, Computer Science', body: 'University College London. Data-Driven Detection and Diagnosis of System-Level Failures in Middleware-Based Service Compositions.' },
   { yr: '2007', title: 'Understanding Entrepreneurial Management', body: 'London Business School.' },
   { yr: '2003', title: 'MSci, Computer Science with Cognitive Science', body: 'University College London.' },
-  { yr: '—', title: '', body: 'Six granted US patents. Best Student Paper, ICWS 2009. Recognised inside IBM for the revenue contribution of the Watson Developer Cloud work and the business impact of the cloud-enablement work.' },
+  { yr: '—', title: '', body: 'Six granted US patents. Best Student Paper, ICWS 2009. Recognised inside IBM for the revenue contribution of the Watson Developer Cloud work, the business impact of the cloud-enablement work, and contributions to Conversational Technology.' },
   { yr: '—', title: '', body: 'German (native), English (fluent), Hebrew (conversational).' },
 ];
 ---
 <Page title="CV" description={description}>
-  <p>A condensed version — twenty-three years, shortened to the parts that still matter. For the full document, or anything that needs a signature, <EmailLink label="email me" />.</p>
+  <p>A condensed version of twenty-three years. For the full document, <EmailLink label="email me" />.</p>
 
   <h2>IBM Israel Research Lab <small style="font-family:var(--ff-mono);font-size:var(--fs-label);color:var(--fg-faint);text-transform:uppercase;letter-spacing:.11em;font-weight:normal">Research Staff Member · 2013 – present</small></h2>
   <ul class="cv-list">

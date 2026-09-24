@@ -15,12 +15,12 @@ const description =
   <div class="wrap">
     <h1 class="page-title">Writing</h1>
     <div class="prose">
-      <p>Notes on distributed systems, operations, and getting useful work out of models. Infrequent, and usually with a diagram. Everything here also goes out by email.</p>
+      <p>I write occasionally about distributed systems, operating software in the real world, and getting useful work out of language models. There is usually a diagram. If you’d like, new posts can arrive by email.</p>
     </div>
 
     {posts.length > 0
       ? <PostList posts={posts} />
-      : <p class="prose">Nothing published yet — the first one is in progress.</p>}
+      : <p class="prose">Nothing published yet.</p>}
 
     <Subscribe />
   </div>

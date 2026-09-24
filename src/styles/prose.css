@@ -7,6 +7,10 @@
 }
 .prose > * + * { margin-block-start: var(--s4); }
 .prose p { margin: 0; }
+/* `.prose p`'s own margin reset outranks `.prose > * + *` on specificity
+   (type selector vs. universal), so it was silently cancelling the
+   sibling spacing between consecutive paragraphs. Restore it explicitly. */
+.prose p + p { margin-block-start: var(--s4); }
 .prose .lead { font-size: 1.3125rem; line-height: 1.5; }
 
 .prose h2 { font-size: var(--fs-h2); font-weight: 600; line-height: 1.25;
