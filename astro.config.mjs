@@ -7,6 +7,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeExternalLinks from 'rehype-external-links';
+import { remarkReadingTime } from './src/lib/remark-reading-time.ts';
 
 export default defineConfig({
   // The custom domain. One of the four places it appears — see DOC 02 T1.8.
@@ -19,7 +20,7 @@ export default defineConfig({
     // REQUIRED. Astro 7 defaults to the Satteri processor, which ignores
     // remark/rehype plugins silently. Do not remove this line.
     processor: unified({
-      remarkPlugins: [remarkMath],
+      remarkPlugins: [remarkMath, remarkReadingTime],
       rehypePlugins: [
         rehypeKatex,
         // rehypeHeadingIds must run before autolink so the anchors have
