@@ -1,0 +1,158 @@
+.prose {
+  font-family: var(--ff-prose);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--fg);
+  max-width: var(--measure);
+}
+.prose > * + * { margin-block-start: var(--s4); }
+.prose p { margin: 0; }
+/* `.prose p`'s own margin reset outranks `.prose > * + *` on specificity
+   (type selector vs. universal), so it was silently cancelling the
+   sibling spacing between consecutive paragraphs. Restore it explicitly. */
+.prose p + p { margin-block-start: var(--s4); }
+.prose .lead { font-size: 1.3125rem; line-height: 1.5; }
+
+.prose h2 { font-size: var(--fs-h2); font-weight: 600; line-height: 1.25;
+  margin-block: var(--s7) var(--s3); text-wrap: balance; letter-spacing: -.01em; }
+.prose h3 { font-family: var(--ff-ui); font-size: var(--fs-h3); font-weight: 600;
+  margin-block: var(--s6) var(--s2); }
+.prose h2 + *, .prose h3 + * { margin-block-start: 0; }
+
+.heading-anchor { color: var(--fg-faint); text-decoration: none; margin-left: .4em;
+  opacity: 0; font-family: var(--ff-mono); font-size: .7em; }
+:is(h2, h3):hover .heading-anchor,
+.heading-anchor:focus-visible { opacity: 1; }
+
+.prose ul, .prose ol { padding-left: 1.3em; margin: 0; }
+.prose li + li { margin-top: var(--s2); }
+.prose li::marker { color: var(--fg-faint); }
+
+.prose blockquote { margin: 0; padding-left: var(--s4);
+  border-left: 2px solid var(--rule-strong); color: var(--fg-muted); font-style: italic; }
+.prose hr { border: 0; border-top: 1px solid var(--rule); margin-block: var(--s7); }
+
+/* code */
+.prose :not(pre) > code { font-family: var(--ff-mono); font-size: .82em;
+  background: var(--bg-sub); border: 1px solid var(--rule);
+  border-radius: 2px; padding: .1em .35em; }
+.prose pre { font-family: var(--ff-mono); font-size: .8125rem; line-height: 1.6;
+  padding: var(--s4); border: 1px solid var(--rule); border-radius: 2px;
+  overflow-x: auto; }
+/* Shiki emits both themes; swap on the same three states as everything else. */
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .astro-code,
+  :root:not([data-theme="light"]) .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+}
+
+/* tables — scroll rather than overflow the page */
+.prose .table-wrap, .prose table { display: block; overflow-x: auto; max-width: 100%; }
+.prose table { border-collapse: collapse; font-family: var(--ff-ui);
+  font-size: var(--fs-meta); }
+.prose th, .prose td { text-align: left; padding: var(--s2) var(--s3);
+  border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.prose th { background: var(--bg-sub); font-weight: 600; }
+.prose td:not(:first-child) { font-variant-numeric: tabular-nums; }
+
+/* figures and charts */
+.fig { margin: var(--s6) 0; }
+.fig img, .fig svg { display: block; width: 100%; height: auto; }
+.fig figcaption { font-family: var(--ff-ui); font-size: var(--fs-meta);
+  color: var(--fg-faint); margin-top: var(--s2); line-height: 1.45; }
+.fig--wide { width: min(var(--measure-wide), 92vw);
+  margin-inline: calc(50% - min(var(--measure-wide), 92vw) / 2); }
+
+/* light/dark chart variants */
+.only-dark { display: none; }
+:root[data-theme="dark"] .only-dark { display: block; }
+:root[data-theme="dark"] .only-light { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .only-dark  { display: block; }
+  :root:not([data-theme="light"]) .only-light { display: none; }
+}
+
+/* mermaid + katex both need a scroll container of their own */
+.prose pre.mermaid { border: 0; padding: 0; background: none;
+  overflow-x: auto; text-align: center; }
+.prose .katex-display { overflow-x: auto; overflow-y: hidden;
+  padding-block: var(--s1); }
+
+/* asides */
+.callout { margin: var(--s5) 0; padding: var(--s3) var(--s4);
+  border-left: 2px solid var(--rule-strong); font-family: var(--ff-ui);
+  font-size: var(--fs-meta); color: var(--fg-muted); }
+.callout .callout-label { font-family: var(--ff-mono); font-size: var(--fs-label);
+  letter-spacing: .11em; text-transform: uppercase; color: var(--fg-faint);
+  display: block; margin-bottom: var(--s1); }
+.callout--warn { border-left-color: var(--link); }
+
+/* syndication + subscribe: quiet metadata lines, not calls to action */
+.syndication {
+  font-family: var(--ff-ui);
+  font-size: var(--fs-meta);
+  color: var(--fg-faint);
+  margin-block-start: var(--s6);
+}
+.subscribe {
+  font-family: var(--ff-ui);
+  font-size: var(--fs-meta);
+  color: var(--fg-muted);
+  border-top: 1px solid var(--rule);
+  padding-top: var(--s3);
+  margin-block-start: var(--s5);
+  max-width: var(--measure);
+}
+
+/* publications, patents, talks — plain lists, no cards */
+.pub-list { list-style: none; padding: 0; margin: 0; }
+.pub-list li { margin: 0 0 var(--s4); }
+.pub-list .pub-authors,
+.pub-list .pub-venue,
+.pub-list .pub-tech {
+  display: block;
+  font-family: var(--ff-ui);
+  font-size: var(--fs-meta);
+  margin-top: 2px;
+}
+.pub-list .pub-authors { color: var(--fg-muted); }
+.pub-list .pub-venue { color: var(--fg-faint); font-style: italic; }
+.pub-list .pub-tech { color: var(--fg-faint); font-family: var(--ff-mono); font-style: normal; }
+.pub-list .pub-year {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-meta);
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+  margin-right: var(--s2);
+}
+
+/* cv — dated entries, monospace tech line as the one signature detail */
+.cv-list { list-style: none; padding: 0; margin: 0; }
+.cv-list li { display: grid; grid-template-columns: 6.5rem 1fr; gap: var(--s5);
+  padding-block: var(--s4); border-top: 1px solid var(--rule); }
+.cv-list li:last-child { border-bottom: 1px solid var(--rule); }
+.cv-list .cv-year {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-meta);
+  color: var(--fg-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cv-list .cv-tech {
+  display: block;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-label);
+  color: var(--fg-faint);
+  margin-top: var(--s2);
+  letter-spacing: .02em;
+}
+@media (max-width: 40rem) {
+  .cv-list li { grid-template-columns: 1fr; gap: var(--s1); }
+}

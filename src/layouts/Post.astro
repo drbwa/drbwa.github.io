@@ -1,0 +1,36 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Base from './Base.astro';
+import Subscribe from '../components/Subscribe.astro';
+import Syndication from '../components/Syndication.astro';
+import '../styles/prose.css';
+import 'katex/dist/katex.min.css';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  headings?: { depth: number; slug: string; text: string }[];
+  readingTime?: string;
+}
+const { post, readingTime } = Astro.props;
+const { title, description, pubDate, updatedDate, tags, syndication } = post.data;
+---
+<Base title={title} description={description} type="article" publishedTime={pubDate}>
+  <div class="wrap">
+    <article class="prose">
+      <h1 class="page-title">{title}</h1>
+      <p class="role">
+        <time datetime={pubDate.toISOString()}>{pubDate.toISOString().slice(0, 10)}</time>
+        {readingTime && <> · {readingTime}</>}
+        {tags.length > 0 && <> · {tags.join(', ')}</>}
+      </p>
+      {updatedDate && (
+        <p class="role">
+          Updated <time datetime={updatedDate.toISOString()}>{updatedDate.toISOString().slice(0, 10)}</time>
+        </p>
+      )}
+      <slot />
+      <Syndication links={syndication} />
+    </article>
+    <Subscribe />
+  </div>
+</Base>

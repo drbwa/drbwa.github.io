@@ -1,0 +1,23 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata;
+  srcDark?: ImageMetadata;
+  alt: string;
+  caption?: string;
+  /** 'wide' lets the figure break out past the text column. */
+  width?: 'text' | 'wide';
+}
+const { src, srcDark, alt, caption, width = 'text' } = Astro.props;
+---
+<figure class={`fig fig--${width}`}>
+  <Image src={src} alt={alt} class={srcDark ? 'only-light' : ''}
+         loading="lazy" decoding="async" />
+  {srcDark && (
+    <Image src={srcDark} alt="" aria-hidden="true" class="only-dark"
+           loading="lazy" decoding="async" />
+  )}
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

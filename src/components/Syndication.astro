@@ -1,0 +1,18 @@
+---
+interface Props {
+  links: { name: string; url: string }[];
+}
+const { links } = Astro.props;
+---
+{links.length > 0 && (
+  <p class="syndication">
+    Also published on{' '}
+    {links.map((l, i) => (
+      <>
+        {i > 0 && ', '}
+        <a href={l.url}>{l.name}</a>
+      </>
+    ))}
+    .
+  </p>
+)}

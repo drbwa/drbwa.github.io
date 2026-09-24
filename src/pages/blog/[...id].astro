@@ -1,0 +1,24 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Post from '../../layouts/Post.astro';
+
+export async function getStaticPaths() {
+  // Drafts are visible in `npm run dev` (README §"Writing a post") but must
+  // never gain a reachable URL in the production build — see DOC 02 T3.6.
+  const posts = await getCollection('blog', ({ data }) =>
+    import.meta.env.PROD ? !data.draft : true,
+  );
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+type Props = { post: CollectionEntry<'blog'> };
+const { post } = Astro.props;
+const { Content, headings, remarkPluginFrontmatter } = await render(post);
+---
+<Post post={post} headings={headings}
+      readingTime={remarkPluginFrontmatter?.readingTime}>
+  <Content />
+</Post>

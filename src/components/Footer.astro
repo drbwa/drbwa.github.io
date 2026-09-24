@@ -1,0 +1,19 @@
+---
+import { ELSEWHERE } from '../consts';
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <span>Bruno Wassermann</span>
+    {ELSEWHERE.map((item) => (
+      <>
+        <span aria-hidden="true">·</span>
+        <a href={item.href}>{item.label}</a>
+      </>
+    ))}
+    <span aria-hidden="true">·</span>
+    <span>Built with Astro; <a href="https://github.com/drbwa/drbwa.github.io">source on GitHub</a>.</span>
+    <span aria-hidden="true">·</span>
+    <span>&copy; {year}</span>
+  </div>
+</footer>

@@ -1,0 +1,23 @@
+---
+// The address never appears as a literal string (with an "@") anywhere in
+// the built HTML or the RSS feed — a scraper that greps the page source for
+// an email pattern finds nothing. Real visitors get a normal, working
+// mailto: link once this runs, which is effectively immediately.
+interface Props {
+  label?: string;
+}
+const { label = 'email me' } = Astro.props;
+---
+<a id="cv-email" href="#">{label}</a>
+
+<script>
+  const a = document.getElementById('cv-email');
+  if (a) {
+    // Reversed and split so no "@" or contiguous address string ever
+    // appears in the page source; reassembled here at runtime.
+    const user = 'nnamressaW.onurb'.split('').reverse().join('');
+    const host = 'moc.liamg'.split('').reverse().join('');
+    const at = String.fromCharCode(64);
+    a.setAttribute('href', `mailto:${user}${at}${host}`);
+  }
+</script>

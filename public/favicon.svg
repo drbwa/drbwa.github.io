@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- BW monogram, option R5 (docs/rebuild/bw-monogram-rotated.html): a solid
+       B with a W — rotated a quarter turn so its tips sit on the spine and
+       its arms read as the B's bowls — cut through as a thin negative line. -->
+  <rect width="32" height="32" rx="3" fill="#2A4C8F"/>
+  <path fill="#FCFCFD" d="M9 5H16.5Q22.5 5 22.5 10.2Q22.5 14.2 19 15.6Q23.5 17 23.5 21.5Q23.5 27 17 27H9Z"/>
+  <path fill="none" stroke="#2A4C8F" stroke-width="1.7" stroke-linejoin="miter" stroke-linecap="butt"
+        d="M13.5 6.5L20.5 10.5L13.5 16L21 21.5L13.5 25.5"/>
+</svg>

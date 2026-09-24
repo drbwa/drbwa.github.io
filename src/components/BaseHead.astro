@@ -1,0 +1,54 @@
+---
+import '@fontsource-variable/newsreader';
+import '@fontsource-variable/public-sans';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/tokens.css';
+import '../styles/global.css';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+}
+const {
+  title,
+  description = SITE_DESCRIPTION,
+  type = 'website',
+  publishedTime,
+} = Astro.props;
+
+const pageTitle = title ? `${title} — ${SITE_TITLE}` : SITE_TITLE;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<meta name="generator" content={Astro.generator} />
+
+<meta property="og:type" content={type} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta name="twitter:card" content="summary" />
+{publishedTime && (
+  <meta property="article:published_time" content={publishedTime.toISOString()} />
+)}
+
+<link rel="alternate" type="application/rss+xml" title={SITE_TITLE}
+      href={new URL('/feed.xml', Astro.site)} />
+
+<!-- Set the theme before first paint so there is no flash. Wrapped in
+     try/catch because localStorage throws in some privacy modes. -->
+<script is:inline>
+  try {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || stored === 'light') {
+      document.documentElement.dataset.theme = stored;
+    }
+  } catch (e) { /* no stored preference; CSS falls back to prefers-color-scheme */ }
+</script>

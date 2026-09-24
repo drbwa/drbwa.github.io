@@ -1,4 +1,18 @@
+# build output
+dist/
+.astro/
+# dependencies
+node_modules/
+# local
+.baseline/
+.DS_Store
+*.log
+.env
+.env.production
+# jekyll leftovers (removed in P6)
 _site
 .jekyll-metadata
 Gemfile.lock
-.DS_Store
+
+# private planning notes, kept out of the repo
+docs/rebuild/

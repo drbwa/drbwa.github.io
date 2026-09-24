@@ -1,0 +1,68 @@
+---
+import Page from '../layouts/Page.astro';
+import EmailLink from '../components/EmailLink.astro';
+
+const description =
+  'Condensed CV: IBM Research, Watson Developer Cloud, AIOps, LakeGuard, agent cost optimisation.';
+
+const ibm = [
+  { yr: '2025 –', title: 'Agent cost optimisation', body: 'technical team lead. Uncertainty-aware dynamic routing to improve the cost–quality trade-off of LLM agent flows; controlled experiments to establish the return; generalising the approach into llm-d.', tech: 'vLLM · llm-d · Go · Python · OpenShift · LiteLLM' },
+  { yr: '2024 – 25', title: 'LakeGuard', body: 'technical team lead. Access control for structured and vector data in Gen-AI lakehouses: one model for heterogeneous ACLs, fine-grained enforcement across multiple query and storage systems, benchmarking what each filtering strategy costs in latency.', tech: 'Presto · Iceberg · Milvus · OpenSearch · Postgres · Spark' },
+  { yr: '2024', title: 'ARISE', body: 'models predicting the resource use, latency and throughput of LLM fine-tuning and inference jobs, so GPU type, count and batch size can be chosen rather than guessed.', tech: 'scikit-learn · XGBoost · pandas' },
+  { yr: '2023 – 24', title: 'Hybrid data flows', body: 'technical team lead. Optimising data processing that spans local clusters and cloud.', tech: 'Kubeflow Pipelines · Apache Calcite · Substrait' },
+  { yr: '2021 – 24', title: 'Hybrid cloud data lifecycle management', body: 'technical lead. Policy-driven expiry, archival and transfer of data across Kubernetes and OpenShift clusters, from factory floor to cloud.', tech: 'Quarkus · Java · Kubernetes · MongoDB · Spark' },
+  { yr: '2016 – 22', title: 'AIOps for IBM IaaS', body: 'tech lead. Anomaly detection and root-cause analysis over logs and metrics for site and network reliability engineers; adopted in production by the team running the IBM Cloud network in 2020.', tech: 'Python · Kotlin · Vue.js · Elasticsearch · Kafka · Grafana' },
+  { yr: '2018 – 19', title: 'Watson Machine Learning Platform', body: "tech lead. Automated release-candidate verification for the NLU training pipeline behind Watson Assistant, so a continuous deployment cannot quietly degrade a customer's chatbot.", tech: 'Python · applied statistics' },
+  { yr: '2014 – 17', title: 'Watson Developer Cloud', body: 'tech lead. Core distributed-systems infrastructure from the first open beta through significant growth; SRE for core services; lifecycle automation for tens of ZooKeeper clusters; close to zero downtime with a team of two to four.', tech: 'Bash · Python · Ansible · ZooKeeper · Java · ELK · Grafana' },
+  { yr: '2013 – 14', title: 'Cloud enablement and mobile backend-as-a-service', body: 'making a single-tenant mobile application platform run as a cloud-native, multi-tenant service.', tech: 'Java · JPA · JAX-RS · WebSphere Liberty' },
+];
+
+const earlier = [
+  { yr: '2011 – 13', title: 'Duco (then Model Two Zero), London', body: 'contractor. Verification rules and tests for SWIFT message types.' },
+  { yr: '2008', title: 'IBM Research, T. J. Watson, New York', body: 'intern. Structured change management for cross-domain service mashups. Two conference papers; Best Student Paper at ICWS 2009.' },
+  { yr: '2006 – 08', title: 'Eclipse Foundation', body: 'committer on the Eclipse BPEL Designer. Built the runtime integration framework that let third-party BPEL engines plug into the designer.' },
+  { yr: '2004 – 06', title: 'University College London, Software Systems Engineering', body: 'research assistant on OMII-BPEL. Built Sedna, a graphical environment for computational scientists to express experiments as Grid workflows; used in production for several large-scale workflows.' },
+  { yr: '2003 – 04', title: 'Goldman Sachs International, London', body: 'programmer analyst, asset management applications. Preceded by a summer internship in 2002.' },
+];
+
+const education = [
+  { yr: '2012', title: 'PhD, Computer Science', body: 'University College London. Data-Driven Detection and Diagnosis of System-Level Failures in Middleware-Based Service Compositions.' },
+  { yr: '2007', title: 'Understanding Entrepreneurial Management', body: 'London Business School.' },
+  { yr: '2003', title: 'MSci, Computer Science with Cognitive Science', body: 'University College London.' },
+  { yr: '—', title: '', body: 'Six granted US patents. Best Student Paper, ICWS 2009. Recognised inside IBM for the revenue contribution of the Watson Developer Cloud work, the business impact of the cloud-enablement work, and contributions to Conversational Technology.' },
+  { yr: '—', title: '', body: 'German (native), English (fluent), Hebrew (conversational).' },
+];
+---
+<Page title="CV" description={description}>
+  <p>A condensed version of twenty-three years. For the full document, <EmailLink label="email me" />.</p>
+
+  <h2>IBM Israel Research Lab <small style="font-family:var(--ff-mono);font-size:var(--fs-label);color:var(--fg-faint);text-transform:uppercase;letter-spacing:.11em;font-weight:normal">Research Staff Member · 2013 – present</small></h2>
+  <ul class="cv-list">
+    {ibm.map((e) => (
+      <li>
+        <span class="cv-year">{e.yr}</span>
+        <span><strong>{e.title}</strong> — {e.body}<span class="cv-tech">{e.tech}</span></span>
+      </li>
+    ))}
+  </ul>
+
+  <h2>Earlier</h2>
+  <ul class="cv-list">
+    {earlier.map((e) => (
+      <li>
+        <span class="cv-year">{e.yr}</span>
+        <span><strong>{e.title}</strong> — {e.body}</span>
+      </li>
+    ))}
+  </ul>
+
+  <h2>Education and recognition</h2>
+  <ul class="cv-list">
+    {education.map((e) => (
+      <li>
+        <span class="cv-year">{e.yr}</span>
+        <span>{e.title && <strong>{e.title}</strong>}{e.title && ' — '}{e.body}</span>
+      </li>
+    ))}
+  </ul>
+</Page>
