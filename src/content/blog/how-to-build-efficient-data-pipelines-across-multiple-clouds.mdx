@@ -1,0 +1,128 @@
+---
+title: How to Build Efficient Data Pipelines Across Multiple Clouds
+description: A prototype for automating task placement in data pipelines across multi-cluster, multi-cloud environments, balancing data governance, resource limits, and transfer cost.
+pubDate: 2024-09-18
+tags: ["data engineering", "distributed systems", "cloud"]
+syndication:
+  - name: Medium
+    url: https://medium.com/@bwassermann/how-to-build-efficient-data-pipelines-across-multiple-clouds-68271bcd96e8
+---
+
+import Figure from '../../components/Figure.astro';
+import hero from './_assets/data-pipeline-compiler-hero.webp';
+import fig1 from './_assets/data-pipeline-compiler-fig1-pipeline.webp';
+import fig2 from './_assets/data-pipeline-compiler-fig2-architecture.webp';
+import fig3 from './_assets/data-pipeline-compiler-fig3-internals.webp';
+import fig4 from './_assets/data-pipeline-compiler-fig4-split.webp';
+
+_Bruno Wassermann, Arun Kumar, Karen Yorav — IBM Research._
+
+Automated task placement can significantly enhance the efficiency, cost-effectiveness, and sustainability of data processing pipelines that need to comply with data governance constraints while operating in complex multi-cluster and multi-cloud environments.
+
+<Figure src={hero} alt="Illustration of data pipelines connecting resources across distributed clouds." width="wide" />
+
+_Before we dive in, we would like to acknowledge the contributions of our colleagues whose effort and expertise led to the development of the ideas and prototype described in this post: Aishwariya Chakraborty, Anand Eswaran, Ohad Eytan, Ronen Kat, Omri Levy, Niels Pardon, Josep Sampé, Paula Ta-Shma, Dasari Surya Sai Venkatesh. It was a pleasure._
+
+## Distributed Data Pipelines
+
+Data is the new oil, and similar to oil it has many uses. Raw data needs to be processed to be made fit for its different intended purposes. This is typically done through data processing pipelines. A data processing pipeline is the series of steps or tasks that transform one or more data sets into a new one for some particular use (e.g., analytics and reporting, training of machine learning models). The tasks comprising a data pipeline perform a variety of operations, from loading data from its source, filtering and joining relevant parts of different data sets, applying transformations to clean and enrich data, and many other types of operations needed to make data fit for its intended purpose.
+
+Data processing pipelines operate in an increasingly distributed environment. The input data sets may originate in different places and their consumers reside in yet different locations. Think of multi-national banks, corporations operating manufacturing plants in several countries, or large numbers of retail locations. A decision-support application may combine regionally aggregated walk-in data for a company's retail locations with third-party provided data, which provides demographic information for geographic regions. Distribution and heterogeneity of resources also arises from business units in large organizations using a mix of on-premises and cloud data stores and compute resources from a number of different providers. As a result, consolidation of data into useful data products requires data pipelines to operate across distributed environments.
+
+We use a real-world multi-location data processing pipeline to illustrate the operation of our prototype (DPC) for deploying and executing data processing pipelines in distributed environments. The _evidence-based medicine_ pipeline in Figure 1 prepares electronic patient records and medical data that originate in a hospital network in Spain for sharing with the promoters of data-driven clinical studies in a number of EU member states. This data needs to be shared in a way that adheres to regulations designed to safeguard the privacy of patients. As this use case involves the transmission of relatively large volumes of data across compute clusters all over the European Union, we want to minimize the need for data transfer as much as possible. This pipeline is one of the use cases of the [TEADAL EU research project](https://www.teadal.eu/) we participate in. TEADAL develops support for sharing data products among producers and consumers across organizational boundaries in a so-called stretched data lake that spans data and compute resources at the edge, on-premises, and across clouds. One of the aims of TEADAL is to support the preparation of data products and their subsequent consumption in a manner that reduces cost and energy consumption while complying with policies to maintain data integrity.
+
+<Figure src={fig1} alt="Diagram of the TEADAL evidence-based medicine pipeline, showing patient data flowing from a hospital network in Spain through filtering, anonymization, and enrichment steps to a study promoter in Germany." caption="Figure 1: TEADAL evidence-based medicine pipeline." />
+
+TEADAL hosts data products via access-controlled API endpoints called Federated and shared Federated Data Products (FDP and sFDP, respectively). In its first step, the pipeline loads patients data from the FDP at the hospital network in Spain. The next task filters patients who do not fit the study criteria, followed by a task to remove personally-identifiable information. The fourth task applies analytic procedures to generate additional metadata about patient records. Finally, the resulting data set is persisted for use by a study promoter in Germany.
+
+## Opportunities and Challenges
+
+The distribution of assets creates opportunities to deploy and execute large-scale data pipelines more efficiently. Listing 1 shows the inventory of clusters available for execution of the pipeline. For brevity, we hide details about each cluster's resources, such as hardware resources, their capacities, and the distances between clusters in terms of geography and bandwidth between clusters. We can reason about how to deploy tasks to use resources in a way that improves metrics such as cost and performance. In our example, we could decide to run all data processing in a single location, say, close to the intended users in Germany. However, this would result in excessive and avoidable movement of large volumes of data, potentially across cloud service provider boundaries resulting in significant egress costs. It would also fail to make use of the 'best' resources for each task (e.g., in terms of cost, energy consumption, capacity of GPUs and virtual machines). Instead, we can determine placements of tasks that optimize a number of attributes of interest, such as achieving an optimal trade-off between monetary cost and completion time or completion time and energy consumption. Our example use case is relatively simple, however, bear in mind that organizations which run many complex, long-running, and resource-intensive data processing pipelines on a regular basis could realize significant efficiency improvements from optimized placements.
+
+```text
+- World
+    - EU
+        - Cluster: Salud-Producer (Spain)
+        - Cluster: Study-Consumer (Germany)
+        - Cluster: Uninvolved (Denmark)
+    - NA
+        - Cluster: X (USA)
+    - Australia
+        - Cluster: Y (Australia)
+```
+
+_Listing 1: Cluster inventory for evidence-based medicine pipeline._
+
+We need to address a number of challenges before we can derive potential benefits. First, we want to ensure that data is used in accordance with external regulations (e.g., GDPR) and company-internal standards. Data governance constraints prescribe the permitted uses for data, for example, by specifying in which geographic locations a specific data set is allowed to reside in and the types of transformations that must be applied (e.g., removal of personally-identifiable information) before it can be shipped to additional locations. We must ensure that the placement of tasks does not violate the regulations and standards that govern how data must be handled. Second, the tasks comprising a data processing pipeline have different resource requirements. Some require a certain amount of working memory while others require a certain type of GPU, and so on. Placing a task on a cluster that does not satisfy its resource requirements prevents the task from commencing execution or, worse, causes it to fail prematurely and after potentially significant resource consumption has been incurred. Finally, it is a difficult task to identify placements that satisfy these hard constraints while at the same time trading off other attributes of interest, such as computation cost and performance. The mental chess required to do so for large, complex data pipelines that process data in multiple locations and can choose from a number of heterogeneous compute clusters is not something we want to burden platform, data, and machine learning engineers with. We need automation to overcome these challenges.
+
+## Data Pipeline Compiler
+
+As part of our involvement in the TEADAL EU research project, we have had an opportunity to explore how to automate the placement and deployment of data pipelines across a multi-cluster and multi-cloud environment taking the inherent challenges into account. The outcome of this exploration is a prototype we refer to as the **Data Pipeline Compiler (DPC)**. DPC determines the placement of tasks in a data pipeline in a way that complies with data set governance constraints, satisfies task resource requirements, and achieves optimization objectives to improve one or more aspects of our data processing. While the active development of DPC has ceased, this blog post is an opportunity to present a summary of our efforts.
+
+## Architecture
+
+The high-level architecture of our prototype (Figure 2) consists of two major components: the DPC determines placement of tasks and the Data Pipeline Orchestrator (DPO) deploys and executes the resulting sub-pipelines across a set of remote Kubernetes clusters. Our focus here is on the DPC, which operates on a number of inputs: a set of data set governance constraints, an inventory of compute clusters and their resources, and the specification of a data processing pipeline, all of which we discuss in the next section. The DPC processes these inputs into a ranked list of executable deployment plans. Each plan consists of sub-pipelines that represent placements of tasks onto different clusters and satisfy all hard constraints. The plans are ranked by how well they achieve the optimization objectives. The deployment plans serve as input to the DPO.
+
+<Figure src={fig2} alt="High-level architecture diagram showing the Data Pipeline Compiler (DPC) taking governance constraints, a cluster inventory, and a pipeline specification as input, and producing ranked deployment plans for the Data Pipeline Orchestrator (DPO)." caption="Figure 2: High-level architecture of DPC and DPO inputs and outputs." />
+
+## Inputs
+
+Let us review the inputs to DPC in more detail.
+
+- **Data flow specification** defines the processing tasks in the data pipeline, their order, inputs and outputs, and the executable specification of each task. In our current prototype we use [Kubeflow Pipelines](https://www.kubeflow.org/) as the pipeline orchestrator and use its specification language to capture data flow. DPC is able to identify the input and output data sets from the Kubeflow specification. For example, in Figure 1, the second task reads the patients' data loaded by the first task and outputs a filtered data set. The user can provide hints to DPC in the form of task annotations. In our example, each task has an input-output ratio, which our prototype uses to compute the output volume of each task as a linear combination of the ratio and the sizes of a task's inputs. In addition, the user indicates that they want the last task to run in Germany, overriding any optimizations DPC might apply. Additional annotations exist (not used in our example) to provide information about task resource requirements, such as on memory and GPU resources.
+- **Data governance constraints** prescribe the geographic locations each data set is allowed to reside in. There are a number of data constraints that we need to adhere to in our use case. First, we only want to transfer data for patients that have given their consent and that fit the criteria of a given clinical study. Second, patient records must not leave Spain as long as they contain sensitive data. Third, patients' data need to remain in the EU at all times. Listing 2 shows a representation of these constraints. Any data sets before the removal of personally-identifiable information need to remain on a cluster in Spain. Subsequent data sets can be in Spain, Denmark, or in Germany. DPC uses this information to influence permissible task placements.
+
+```text
+- constraintID: dataConstraint1
+  constraintOn: Dataset
+  datasetNames:
+      - patients.json
+      - patients_output_artifact.json
+      - filtered_patients_output_artifact.json
+  allowedGeographies:
+      - Spain
+- constraintID: dataConstraint2
+  constraintOn: Dataset
+  datasetNames:
+      - sanitized_patients_output_artifact.json
+      - enriched_patients_output_artifact.json
+      - patients-sfdp.json
+  allowedGeographies:
+      - Spain
+      - Germany
+```
+
+_Listing 2: Data governance constraints for evidence-based medicine pipeline._
+
+- **Cluster resource inventory** provides information about where clusters are located geographically, and what resources are available. The inventory contains attributes that DPC can use to match task resource requirements with clusters and includes things such as the types and number of GPUs, the amount of working memory, the network bandwidth between clusters, and so on. The cluster resource inventory for our use case is shown in Listing 1. It has three clusters in the EU, one in Spain, one in Germany, and a third one in Denmark. There is also one cluster each in North America and in Australia. This creates choice regarding the placement of tasks. After personally-identifiable information has been removed, tasks could be placed on any cluster in the EU. This gives DPC the freedom to pick placements that optimize attributes of interest.
+- **Optimization objectives** inform DPC of the attributes we want to optimize. In our prototype, we have implemented the minimization of an objective function based on a single metric. For this example, we are interested in minimizing the amount of data that needs to be transferred across the wide-area network as a proxy for cost and resource consumption. DPC will place tasks in a way that minimizes the amount of data transferred between remote clusters while making sure that all hard constraints imposed by data governance and resource requirements are satisfied.
+
+The evidence-based medicine pipeline is relatively simple. It consists of only a few tasks that do not exhibit special resource requirements (e.g., type of GPU and amount of memory). However, it serves well to illustrate the operation of the DPC. Bear in mind that some organizations deploy and execute large numbers of complex, long-running, and resource-intensive data pipelines on a regular basis. In these cases, DPC could be used to solve a more complex instance of the problem in the same way as we explain here for the simpler case.
+
+## Operation
+
+The DPC applies a sequence of processing steps to its inputs in order to produce optimized, multi-location deployment plans through its main components shown in Figure 3.
+
+<Figure src={fig3} alt="Diagram of the internal architecture of the Data Pipeline Compiler, showing the Internal Representation, Resource Estimator, Resource Constraints Handler, Governance Constraints Handler, and Optimizer components." caption="Figure 3: Diagram of internal architecture of DPC." />
+
+**Internal Representation**. First, DPC converts the data pipeline specification, in this case an annotated Kubeflow Pipeline, into an internal representation (IR) that provides common abstractions of all the information DPC needs. The IR decouples components from the specific pipeline specification language. And in the end, DPC converts the optimized deployment plans into nested Kubeflow pipelines.
+
+The **Resource Estimator** provides estimates of the resource requirements and other characteristics of the behavior of each task as annotations. These can describe memory requirements or task output volume. The latter is particularly useful to minimize data transfer volume across clusters. Our prototype relies on the user for much of the required input, but it would be interesting to automate such estimates as much as possible.
+
+With this information, the **Resource Constraints Handler** compares the resource requirements of a task with the resources provided by a cluster. The result is an assignment of clusters that can satisfy the resource requirements of each task. For example, if a task requires four NVIDIA A100 GPUs, only clusters that have at least four A100 GPUs will appear as possible assignments for this task. Users are also able to specify explicit geographic location constraints on tasks through data pipeline annotations, which are also taken into account at this stage. The Resource Constraints Handler adds an annotation to each task that lists the clusters that a task could be placed in.
+
+Next, the **Governance Constraints Handler** processes the governance constraints for each data set and infers the permissible locations of the tasks handling a data set. In our use case, the output of the `remove_pii` task and subsequent data sets can exist on any of the clusters in the EU. The result of this step is typically to further restrict the set of clusters that are available for placement of a task.
+
+The **Optimizer** determines the placement of tasks onto clusters in a way that achieves the optimization objectives within the hard constraints determined by previous processing steps. The Optimizer applies constraint optimization to find groupings of tasks that satisfy the valid clusters per task while minimizing some notion of cost (i.e. cross-cluster data transfer volume). The resulting groups of tasks to clusters comply with unavoidable cuts (e.g., due to hard constraints such as resource requirements and governance constraints) while minimizing the amount of data that needs to be transferred between tasks in different groups. In our example, once personally-identifiable information has been removed by the third task, there is a choice between any of the three clusters in the EU. As shown in Figure 4, the Optimizer has divided the tasks into two groups that reduce the amount of data transferred while meeting the specified constraints. It could have made the cut after the enrichment task, but this would have resulted in a greater volume of data transfer. Similarly, placing the enrichment task on a cluster in Denmark would have incurred data transfer from Spain to Denmark (of the same volume as the current solution transfers) and then an even higher volume to transfer data from Denmark to Germany where the data is to be persisted. Any cut before the chosen one would not have been permissible as the tasks handle data sets that need to remain in Spain. We repeat the execution of the constraint solver to provide a ranked list of solutions, starting with those achieving the objective function the best, in order to provide more flexibility in the face of changing runtime environment conditions.
+
+<Figure src={fig4} alt="Diagram showing tasks of the evidence-based medicine pipeline split into two groups across clusters, chosen to minimize cross-cluster data transfer while meeting governance constraints." caption="Figure 4: Splitting of tasks across clusters to minimize data transfer while meeting constraints." />
+
+At the end of this process, the DPC provides us with a set of placements of tasks across available clusters that comply with governance constraints, satisfy resource requirements, and minimize data transfer across clusters. These placements or solutions are converted into nested Kubeflow pipelines, each of which represents groupings of tasks in the form of sub-pipelines. The Data Pipeline Orchestrator is then able to materialize each sub-pipeline on a suitable cluster and orchestrates the execution of the overall pipeline. But this is a story for another time…
+
+## Conclusions
+
+The distribution of data and computational resources create opportunities to run our data processing pipelines in a more efficient manner. However, before we can realize the benefits, we need to be able to make informed trade-offs between the constraints from data set governance rules designed to safeguard data, the characteristics of available resources in different clusters along with the resource requirements of our processing tasks and the relevant runtime characteristics we want to optimize, such as cost or energy consumption. In this blog post we have described our past work on a prototype that automates these decisions on behalf of engineers by determining the best placements of tasks across multi-cluster and multi-cloud environments in a way that complies with data governance constraints, satisfies task resource requirements, and minimizes a cost function.
+
+Please share your experiences managing multi-cluster and cloud data pipelines. If we get enough responses, we will write a follow-up post with insights from your responses.
+
+**Partly funded by the European Union (TEADAL, 101070186). Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union. Neither the European Union nor the granting authority can be held responsible for them.**

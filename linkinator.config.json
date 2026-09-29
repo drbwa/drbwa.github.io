@@ -1,0 +1,6 @@
+{
+  "skip": ["linkedin.com", "scholar.google", "medium.com"],
+  "urlRewriteExpressions": [
+    { "pattern": "https://brunowassermann.com", "replacement": "" }
+  ]
+}
