@@ -1,0 +1,157 @@
+---
+title: How Cheap Can We Go On A Real Agentic Workflow?
+description: We ran a real GitHub issue-triage agent on nine models. The cost-quality curve was a cliff, not a slope, and the cheapest model per run was not the cheapest route to a correct answer.
+pubDate: 2026-11-05
+tags: ["AI agents", "LLMs", "cost optimization"]
+syndication:
+  - name: Medium
+    url: https://medium.com/@bwassermann/how-cheap-can-we-go-on-a-real-agentic-workflow-713fe309dd78
+  - name: Substack
+    url: https://brunowassermann.substack.com/p/how-cheap-can-we-go-on-a-real-agentic
+---
+
+import Figure from '../../components/Figure.astro';
+import fig2 from './_assets/agentic-cost-fig2-pass-rates.png';
+import fig3 from './_assets/agentic-cost-fig3-cost-vs-oracle.webp';
+import fig4 from './_assets/agentic-cost-fig4-cost-per-success.png';
+
+_Bruno Wassermann, Shlomit Koyfman, Sharon Keidar-Barner._
+
+Agentic workflows can devour an extraordinary amount of tokens. A recent study of agentic coding tasks found that they consumed roughly 1,000 times more tokens than ordinary code reasoning or chat [^bai:2026:04]. At that scale, when an agentic workflow runs frequently or processes many task instances, choosing which model runs the workflow stops being a minor implementation decision.
+
+The safest choice for an important workflow is usually to pick a strong frontier model and get on with it. But with model prices now spanning orders of magnitude, how much are we leaving on the table by doing that?
+
+We tested nine models at different cost levels by running the same real GitHub issue-triage workflow repeatedly with each. The result was not a smooth cost-quality trade-off. Two high-capability models that cost roughly 75% less per workflow run than Claude Opus achieved comparable task quality, while going further down the price curve produced a sharp quality collapse. Another interesting observation was that some cheap models completed the workflow almost perfectly while getting the underlying task wrong.
+
+This post looks at where that apparent economic sweet spot came from, why the cheapest model per run turned out to be among the most expensive routes to a correct answer, and what the results imply for model routing in long-running agents. The key question is: **How does the real cost-versus-task-success trade-off change as we move down the model-price spectrum?**
+
+## The experiment
+
+As the workflow, we used a real multi-step GitHub Issue Triage workflow [^syme:2026:01] that the good people at GitHub Next [^githubnext:agentics] published. This workflow takes a set of open issues from a real repository, examines them, determines what kind of issue each one is, applies appropriate labels, and generates a triage comment for human reviewers. It is representative of the agentic workloads we care about in several ways: multiple steps, tool use, existing state that needs to be passed among steps, repeated reasoning over different inputs, and enough context consumption that model economics matter.
+
+We used OpenClaw as a controllable execution substrate that gave us OpenTelemetry traces, logs, and metrics for each run. The input consisted of 14 real issues from the llm-d repository covering different issue types such as bugs, documentation requests, automation-related issues, and so on.
+
+We tested nine models covering a wide range of price and capability levels: proprietary frontier and production models, high-capability open-weight models, and much cheaper models. Each model ran the complete workflow ten times, with state reset between runs, giving 90 workflow executions in total.
+
+| Model | Category / Tier | Input / 1M tokens | Output / 1M tokens |
+| --- | --- | ---: | ---: |
+| Claude Opus 4.6 | Frontier | $5.00 | $25.00 |
+| Claude Sonnet 4.6 | Strong Production | $3.00 | $15.00 |
+| Claude Sonnet 4.5 | Strong Production | $3.00 | $15.00 |
+| GLM 5.2 | Near-Frontier OSS | $1.40 | $4.40 |
+| Claude Haiku 4.5 | Budget Proprietary | $1.00 | $5.00 |
+| Kimi K2.7 | Near-Frontier OSS | $0.95 | $4.00 |
+| MiniMax M2.5 | Near-Frontier OSS | $0.30 | $1.20 |
+| Gemma 4 31B | Cost-Efficient OSS | $0.12 | $0.34 |
+| GPT-OSS-120B | Ultra-Budget OSS | $0.09 | $0.36 |
+
+_The model and price spectrum we chose shows that prices (taken from official provider API pricing and openrouter.ai as of July 2026) span a large range._
+
+Note that this is a small experiment that should not be read as a general ranking of these nine models. Instead, our results tell us what the economics look like in one reasonably realistic agentic workflow, and what kinds of effects are worth investigating more carefully.
+
+## How we measured success
+
+We defined two levels of verification. The first, **structural verification**, represents a more generic test that evaluates a number of heuristics to determine whether the agent changed the repository state in a structurally valid manner. Specifically:
+
+- Did the agent process all expected issues?
+- Did it apply labels and were they valid labels in this repository?
+- Did the agent add a comment?
+
+The second level, **oracle verification**, represents a higher hurdle. It uses ground truth to determine if the agent made the right semantic decisions. For example, did it apply labels that were considered correct for the issue and did its triage comment capture the expected content? We tried to encode acceptable alternatives rather than insist on one exact response to account for cases with multiple defensible answers.
+
+Furthermore, we counted a run as a structural success if the complete workflow passed the structural checks (i.e. for all issues). For the oracle pass rate, we counted a run as successful if at least half of the issues in the run satisfied the ground truth.
+
+One important caveat is that some issues were difficult for almost every model, including strong ones. Even though the desired labels and outputs are defensible given the information available to the agent, it could be that these cases were genuinely hard or point to an issue with the ground truth possibly being too strict.
+
+## The first surprise: completing the workflow did not mean getting it right
+
+Before we dive into the economics, let's look at the task success results as they reveal something interesting about measuring agent performance.
+
+The proprietary frontier and strong production models performed well on structural verification and also reasonably well on the harder oracle verification. Kimi K2.7 performed strongly as well, even achieving the highest observed oracle pass rate. GLM 5.2 also held its own and landed in roughly the same performance region as these other strong models. However, for several models, their success rate diverged significantly between structural and oracle verification. For example, Gemma achieved 100% structural success but 0% oracle success (we analyze failure modes below). And Haiku showed a similar pattern with a structural success rate of 90% and only 10% oracle success.
+
+<Figure src={fig2} width="wide" alt="Horizontal bar chart of structural and oracle pass rates for nine models, sorted by oracle pass rate. Kimi K2.7: 80% structural, 80% oracle. Claude Opus 4.6: 90%, 70%. Claude Sonnet 4.5: 90%, 70%. GLM 5.2: 90%, 60%. Claude Sonnet 4.6: 100%, 60%. Claude Haiku 4.5: 90%, 10%. Gemma 4 31B: 100%, 0%. MiniMax M2.5: 30%, 0%. GPT-OSS-120B: 10%, 0%." caption="Generic process-level validation versus semantic ground truth: A model can complete the workflow cleanly without completing the task correctly." />
+
+If we had evaluated the agent only based on whether it completed the workflow correctly at what we refer to as the structural level, Gemma would have come out as outstanding by providing enormous cost savings without any apparent loss of quality. However, at the deeper semantic level it did fail for every run under our oracle checks. Therefore, a model can be **well behaved without being right**. It can call many tools correctly, produce valid outputs, complete every step of the workflow, and even change the state in a way that looks perfectly respectable on the surface, while making incorrect semantic decisions. That means standard workflow telemetry, such as tool call success and completion rate, is not sufficient to tell you whether an agent is actually doing its job.
+
+Next, let's find out what happens when we put cost and semantic task success together.
+
+## The economic result: there was a sweet spot followed by a cliff
+
+The results show roughly three economic regimes that the nine models fit into:
+
+1. The expensive tier is comprised of the proprietary frontier and strong production models (i.e. Claude Opus and Sonnet models). They achieve high task success reliably, but are expensive.
+2. There is a middle tier of high-capability, but much cheaper models, such as Kimi K2.7 and GLM 5.2. These models preserved roughly frontier-level semantic success while costing only about one quarter as much per run.
+3. The budget tier is comprised of models that offer significantly lower per-run prices like Claude Haiku, Gemma, and GPT-OSS. We observed a semantic task success collapse for these models. While the models looked attractive from a pricing viewpoint and in some cases even when we looked exclusively at structural task success, once you take into account whether a task was actually completed correctly at a deeper semantic level, the cost picture stopped making sense.
+
+Our results show that the cost-quality trade-off does not degrade smoothly. You do not get proportionally less quality as you pay less, but instead there is a **capability cliff**. Going from an expensive proprietary model to a high-capability cheaper model preserved most or all of the task quality while eliminating roughly three quarters of the cost. However, once we attempt to increase our cost savings by going to even cheaper models, semantic success falls off sharply. The cost-quality curve is a cliff, not a slope.
+
+<Figure src={fig3} width="wide" alt="Scatter plot of oracle pass rate against average cost per workflow run on a log scale. A shaded desired zone marks at least 50% cost reduction and at most a 20-point oracle drop versus Opus. Kimi K2.7 (80%, about $1.20) and GLM 5.2 (60%, about $1.08) sit inside it. Claude Opus 4.6, Sonnet 4.5 and Sonnet 4.6 sit at 60–70% but cost $3.50–$5. Claude Haiku 4.5 is at 10% for about $1, and Gemma 4 31B, MiniMax M2.5 and GPT-OSS-120B are at 0% for $0.01–$0.48. A Pareto frontier line steps from GPT-OSS through Haiku and GLM to Kimi." caption="The economic optimum our experiments discovered are between the strongest and the cheapest models." />
+
+The middle region is interesting. Relative to Opus 4.6, only two of the eight cheaper models managed to clear both of our quality thresholds. GLM 5.2 reduced run cost by more than 75% and achieved an oracle success rate of only 10% below that of Opus. Kimi K2.7 similarly reduced cost by about 73% and scored a slightly higher oracle success rate than Opus did. I would not claim from this experiment that "Kimi is better than Opus", as we only observed 10 runs per model. However, the result does show that these cheaper high-capability models were in the same performance region as our proprietary frontier model.
+
+The proprietary step-downs from Opus behaved differently. Sonnet 4.6 remained strong at a modest cost reduction relative to Opus of about 20%. Sonnet 4.5 had an even higher success rate than its successor. However, this came at a cost per workflow run that was even higher than Opus. Our analysis of the collected traces shows that this was due to Sonnet 4.5 making far less use of delegating work to sub-agents and therefore accumulating significantly more tokens in its main context window.
+
+As we moved further down the price curve, we found a dramatic quality deterioration. Both Haiku and the budget open models delivered large nominal savings, but failed the semantic quality hurdle.
+
+So at least on this workflow and task instances, there was a narrow and economically important region where substantially cheaper, high-capability models retained near-frontier task success. Going further down the cost curve caused semantic quality to collapse. There are viable target models for achieving favorable cost-quality trade-offs, but the viable choices for a real agentic workflow are narrower than we may have expected.
+
+### Table 1 — Desired-zone threshold test per model · oracle lens · baseline: Opus 4.6
+
+| Model | Cost reduction vs. Opus | Oracle pass-rate Δ vs. Opus | Verdict |
+| --- | ---: | ---: | --- |
+| **Kimi K2.7** | 73.3 % | +10 pts | ✅ Pass |
+| **GLM 5.2** | 75.9 % | −10 pts | ✅ Pass |
+| Sonnet 4.6 | 20.7 % | −10 pts | ❌ Fail — cost |
+| Sonnet 4.5 | −6.9 % | 0 pts | ❌ Fail — cost |
+| Haiku 4.5 | 77.7 % | −60 pts | ❌ Fail — quality |
+| Gemma 4 31B | 96.4 % | −70 pts | ❌ Fail — quality |
+| MiniMax M2.5 | 89.3 % | −70 pts | ❌ Fail — quality |
+| GPT-OSS-120B | 99.8 % | −70 pts | ❌ Fail — quality |
+
+_Thresholds: ≥50 % cost reduction and ≤20 % oracle pass-rate drop versus Opus 4.6. Positive oracle Δ means the cheaper model scored higher than the frontier. The two passes (Kimi, GLM) are open-weight large models._
+
+## The cheapest run was not the cheapest successful outcome
+
+Model choice can have a large effect on the operating costs of long-running agents. In our model lineup there was a 30x spread in average cost per run among those models that meaningfully engaged with the workflow. However, the average run cost can be misleading. If one model costs $2 per attempt and succeeds almost every time, while another costs $0.50, but succeeds only once in every six attempts, then choosing the cheap model makes achieving success more expensive.
+
+<Figure src={fig4} width="wide" alt="Paired bar chart of cost per oracle-successful outcome and average cost per run, sorted by cost per success. Kimi K2.7: $1.50 per success, $1.20 per run. GLM 5.2: $1.81, $1.08. Claude Sonnet 4.6: $5.93, $3.56. Claude Opus 4.6: $6.41, $4.49. Claude Sonnet 4.5: $6.86, $4.80. Claude Haiku 4.5: $10.02 per success despite $1.00 per run. GPT-OSS-120B ($0.01 per run), Gemma 4 31B ($0.16) and MiniMax M2.5 ($0.48) had zero oracle successes, so their cost per success is infinite." caption="Kimi and GLM were more than 3-4x cheaper per observed oracle success than Opus. Some models that are cheap per average workflow run, did not cross the hurdle to validated semantic success." />
+
+When we consider the **cost to a successful outcome**, some models look particularly strong while others, which looked attractive based on their average run cost, actually turn out not to be cost-effective choices. Kimi K2.7 had the lowest observed cost per oracle-success ($1.50). GLM was close behind at $1.81. Opus, which achieves high success rates, comes in at $6.41 per success due to its high average cost, as expected.
+
+Things turned out to be more surprising at the cheap end of the spectrum. Gemma, MiniMax, and GPT-OSS all had zero oracle success rates, giving them an infinite cost to successful outcome. Haiku had such a low, non-zero oracle success rate, that its average cost of just $1.00 per workflow run, turned into a significantly more expensive cost-to-success of $10. That is more expensive than our Opus baseline model and other frontier models!
+
+In this experiment, the cheapest route to a semantically correct, high-quality outcome was neither the cheapest models nor the strongest frontier model either. Instead, it was high-capability models in the middle of the price spectrum.
+
+Choosing which model to use for a real-world agentic task cannot be based solely on a pricing table, but needs to take model capability into account and how this relates to a meaningful notion of task success.
+
+## The models also failed in different ways
+
+The budget models (Haiku, MiniMax, Gemma, GPT-OSS) all failed to achieve task success at a deeper semantic level as measured by our oracle verification, but they failed for different reasons. While Gemma was able to execute the workflow cleanly and consistently, it even nicely recovered from shell errors, it got close, but never crossed, our requirement of getting at least half of the issues right. Its oracle success rate suffered due to hitting what seemed like a semantic label selection limit where it stopped applying labels after the first three or four and consequently missed some important issue categorizations. MiniMax displayed an entirely different failure mode. It consistently failed to iterate over paginated API results and thereby limited itself to only the first page of repository labels, making it impossible to select the correct labels for each issue. GPT-OSS effectively refused to even engage in the workflow. It insisted that it either lacked the GitHub CLI or that it had not been authenticated, even though the CLI was available and authenticated.
+
+Claude Haiku passed the oracle verification hurdle for a single run out of ten. In almost every case, the model correctly read the issue, assigned the right type (e.g., bug, enhancement, priority), but failed to additionally identify the repository-specific workstream label. It gravitated toward generic GitHub taxonomy (e.g., enhancement, bug) and did not surface the narrow project-specific tag, even though very similar and related terms are mentioned in the issue text.
+
+Semantic failures can stem from very different root causes, and that distinction matters for routing and escalation design. A model that misunderstands tool access or misuses an API is a fundamentally different problem from one that executes the workflow cleanly but repeatedly makes the wrong domain decision. These two classes of failures require different monitoring, detection, and recovery strategies.
+
+## What can we learn from this experiment?
+
+The first conclusion is that there is significant economic potential in down-routing real agentic workloads, at least for this workflow. Interestingly, the lowest-cost models in our study were unable to meet the level of semantic correctness required for the task. Instead, the most promising down-routing targets were high-capability open-weight models. These models can be deployed at a fraction of the cost of proprietary frontier models and can also be served on-premises within an organization's infrastructure, potentially reducing costs even further.
+
+A second key finding is that intelligent model selection matters. The choice of model can have a substantial impact on both cost and quality.
+
+These observations suggest a compelling opportunity for dynamic routing systems that optimize the quality-cost trade-off. Several architectural patterns are worth exploring:
+
+- **Plan strong, execute cheap:** Generate the initial plan or decomposition with a frontier model, hand execution to a lower-cost model, and monitor for escalation triggers.
+- **Default cheap, escalate on signals:** Start with a cost-effective model and selectively escalate when telemetry indicates the agent is struggling.
+- **Targeted advice:** Allow smaller models to seek bounded, targeted assistance or second opinions from stronger models during high-uncertainty decisions.
+
+The central challenge in dynamic routing is determining **when to escalate**. The goal is to maximize task quality while minimizing unnecessary token spend. Our results show that this is difficult because models fail in fundamentally different ways.
+
+Some failures were visible execution failures. Examples include malformed tool calls, inability to recover from errors, refusal to use available tools, or failure to properly navigate API results. These failures can, in principle, be detected at the inference-platform level because the agent deviates from expected operational behavior in observable ways.
+
+Other failures, however, were silent semantic failures. In these cases, the agent executed the workflow correctly, produced repository changes that appeared valid, and completed the task without errors, yet consistently arrived at the wrong answer. Such failures may be largely invisible to the inference platform.
+
+This distinction is what makes routing difficult. Detecting and escalating on visible execution failures is a tractable engineering problem. Detecting silent semantic degradation, where a model operates confidently while producing incorrect results, requires something closer to continuous evaluation. This creates an opportunity for routing systems that leverage platform-level signals to predict not only execution failures, but also stagnation, deteriorating reasoning quality, and more subtle forms of semantic drift.
+
+[^bai:2026:04]: Bai, L. et al. (2026). "How Do AI Agents Spend Your Money? Analyzing and Predicting Token Consumption in Agentic Coding Tasks". Arxiv. [https://arxiv.org/abs/2604.22750](https://arxiv.org/abs/2604.22750)
+[^githubnext:agentics]: GitHub Next. (Accessed August 2026). "The Agentics". [https://github.com/githubnext/agentics](https://github.com/githubnext/agentics)
+[^syme:2026:01]: Syme, D., de Halleux, P., Kiefer, M. (2026). "Meet the Workflows: Issue Triage".
